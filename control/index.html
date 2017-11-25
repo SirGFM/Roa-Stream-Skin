@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> GFM's Gaming Arena Control Center </title>
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="keywords" content="stream,skin" />
+        <meta name="description" content="GFM's streaming skin controller" />
+        <meta name="author" content="Gabriel Francisco Mandaji" />
+        <!--
+        <link rel="shortcut icon" href="/favicon.ico?" />
+        <link rel="stylesheet" type="text/css" href="/style/page.css" />
+        -->
+        <style>
+            html, body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background-color: #222034;
+                background-image: url('/img/bg.png');
+                color: #cbdbfc;
+                font-size: 1em;
+            }
+            div.block {
+                border-radius: 1em;
+                background-color: #222034;
+                margin: 0.25em;
+                padding: 1em;
+            }
+            div.tab {
+                visibility: hidden;
+                position: absolute;
+                top: 0;
+            }
+            input.big-button {
+                height: 3em;
+            }
+            h1 {
+                font-size: 2em;
+                margin-left: 1em;
+            }
+            h2 {
+                font-size: 1.5em;
+                margin-left: 2em;
+            }
+            h3 {
+                font-size: 1.25em;
+                margin-left: 5em;
+            }
+            label {
+                color: #9badb7;
+            }
+            .field {
+                margin-left: 5em;
+                margin-bottom: 2em;
+                display: block;
+            }
+            .compact-field {
+                margin-left: 3em;
+                margin-bottom: 2em;
+                display: block;
+            }
+            input.button {
+                height: 2em;
+            }
+            img.avatar {
+                padding: 1em;
+                height: 1.5em;
+                vertical-align: middle;
+            }
+        </style>
+
+        <script type="text/javascript" src="/script/common.js"></script>
+        <script type="text/javascript" src="/script/players.js"></script>
+        <script>
+            /**
+             * Set a div as visible, hiding the previous visible one.
+             * The previous div is stored on the global variable lastVisible.
+             *
+             * @param{self} An object whose @attribute{value} is the div's id.
+             */
+            function setVisible(self) {
+                var div = document.getElementById(self.value)
+
+                if (lastVisible != null) {
+                    lastVisible.style.visibility = 'hidden';
+                    lastVisible.style.position = 'absolute';
+                    lastVisible.style.top = 0;
+                }
+                div.style.visibility = 'visible';
+                div.style.position = 'initial';
+                div.style.top = 'auto';
+                lastVisible = div;
+            }
+            var lastVisible = null
+
+            /**
+             * Set the current side of the brackets
+             *
+             * @param{self} An object whose @attribute{value} is the side.
+             */
+            function setBracket(self) {
+                if (self.value !== WINNERS && self.value !== LOSERS) {
+                    console.log("Invalid bracket side: '" + self.value + "'");
+                    return
+                }
+                state.game.side = self.value;
+            }
+
+            /**
+             * Set the maximum number of matches in a single game.
+             *
+             * @param{self} An object whose @attribute{value} is the number of matches.
+             */
+            function setBestOf(self) {
+                val = parseInt(self.value, 10)
+                if (val !== BO3 && val !== BO5) {
+                    console.log("Invalid maximum number of matches: '" + self.value + "'");
+                    return
+                }
+                state.game.numMatches = val;
+            }
+
+            /**
+             * Set the current round being played.
+             *
+             * @param{self} An object whose @attribute{value} is the current round.
+             */
+            function setRound(self) {
+                if (self.value !== POOLS && self.value !== SEMIS &&
+                        self.value !== FINALS && self.value !== GRANDFINALS) {
+                    console.log("Invalid round: '" + self.value + "'");
+                    return
+                }
+                state.game.round = self.value;
+            }
+
+            /**
+             * Update a value, possibly limiting its range.
+             *
+             * @param{current} The current value
+             * @param{cmd}     How the value should be updated. Should be one
+             *                 of RESET, DEC and INC.
+             * @param{min}     Minimum allowed value.
+             * @param{max}     Maximum allowed value.
+             */
+            function updateValue(current, cmd, min, max) {
+                switch (cmd) {
+                    case RESET: {
+                        return min;
+                    }
+                    case DEC: {
+                        if (min !== undefined && current - 1 < min) {
+                            return min;
+                        }
+                        return current - 1;
+                    }
+                    case INC: {
+                        if (max !== undefined && current + 1 > max) {
+                            return max;
+                        }
+                        return current + 1;
+                    }
+                    default: {
+                        return min;
+                    }
+                }
+            }
+
+            /**
+             * Set the number of the pool round.
+             *
+             * @param{self} An object whose @attribute{value} should control the pool round.
+             *              Must be one of 'Reset', '-', '+'.
+             * @param{id}   ID of the object whose text shall be updated with the new value.
+             */
+            function setPool(self, id) {
+                if (self.value !== RESET && self.value !== DEC &&
+                        self.value !== INC) {
+                    console.log("Invalid pool round: '" + self.value + "'");
+                    return
+                }
+
+                state.game.rpool = updateValue(state.game.rpool, self.value, 1);
+                document.getElementById(id).innerText = state.game.rpool;
+            }
+
+            /**
+             * Update a player and its image, selected from a @element{select}
+             *
+             * Notes:
+             *   - If the ID contains 'left', the left tab will be updated.
+             *   - If the ID contains 'right', the right tab will be updated.
+             *   - If the ID contains 'player', the image will be retrieve from player_list.
+             *   - If the ID contains 'char', the image will be retrieve from character_list.
+             *   - The image's ID is derived from the element's ID by appending '-img'.
+             *
+             * @param{self} The @element{select} that was changed.
+             */
+            function updatePlayer(self) {
+                var arr = undefined;
+                var img = undefined;
+                var player = undefined;
+
+                // Select the object to be updated
+                if (self.id.indexOf('left') != -1) {
+                    player = state.left;
+                }
+                else if (self.id.indexOf('right') != -1) {
+                    player = state.right;
+                }
+                else {
+                    console.log("Invalid select element: '" + self.id + "'");
+                }
+
+                // Select the array used to change the image. Also updates the object.
+                if (self.id.indexOf('player') != -1) {
+                    arr = player_list;
+                    player.player = self.selectedIndex;
+                }
+                else if (self.id.indexOf('char') != -1) {
+                    arr = character_list;
+                    player.character = self.selectedIndex;
+                }
+                else {
+                    console.log("Invalid select element: '" + self.id + "'");
+                }
+
+                img = document.getElementById(self.id+"-img");
+                img.src = arr[self.selectedIndex].img
+            }
+
+            /**
+             * Set the score for a given player.
+             *
+             * Notes:
+             *   - If the ID contains 'left', the left tab will be updated.
+             *   - If the ID contains 'right', the right tab will be updated.
+             *   - The score's ID is derived from the element's ID by appending '-txt'.
+             *
+             * @param{self} An object whose @attribute{value} should control the pool round.
+             *              Must be one of 'Reset', '-', '+'.
+             */
+            function setScore(self) {
+                var player = undefined;
+                var label = undefined;
+
+                // Select the object to be updated
+                if (self.id.indexOf('left') != -1) {
+                    player = state.left;
+                }
+                else if (self.id.indexOf('right') != -1) {
+                    player = state.right;
+                }
+                else {
+                    console.log("Invalid select element: '" + self.id + "'");
+                }
+
+                player.score = updateValue(player.score, self.value, 0, Math.ceil(state.game.numMatches/2));
+
+                label = document.getElementById(self.id+"-txt");
+                label.innerText = player.score;
+            }
+
+            /**
+             * Set the visiblity of the camera view
+             *
+             * @param{bool} Whether it should be visible or not.
+             */
+            function setCamView(bool) {
+                if (bool !== false && bool !== true) {
+                    console.log("Invalid camera visibility: '" + bool + "'");
+                    return
+                }
+                state.other.camera = bool;
+            }
+
+            /**
+             * Set the visiblity of the gamepad view
+             *
+             * @param{bool} Whether it should be visible or not.
+             */
+            function setGamepadView(bool) {
+                if (bool !== false && bool !== true) {
+                    console.log("Invalid gamepad visibility: '" + bool + "'");
+                    return
+                }
+                state.other.gamepad = bool;
+            }
+
+            /**
+             * Reset both players' scores.
+             */
+            function resetScore() {
+                setScore({id: "left-score", value: "RESET"})
+                setScore({id: "right-score", value: "RESET"})
+            }
+
+            /**
+             * Switch the players.
+             */
+            function switchPlayers() {
+                lp = state.left.player
+                lc = state.left.character
+                ls = state.left.score
+                rp = state.right.player
+                rc = state.right.character
+                rs = state.right.score
+
+                updatePlayer({id: "left-player", selectedIndex: rp})
+                updatePlayer({id: "left-char", selectedIndex: rc})
+                updatePlayer({id: "right-player", selectedIndex: lp})
+                updatePlayer({id: "right-char", selectedIndex: lc})
+
+                state.left.score = rs - 1
+                state.right.score = ls - 1
+                setScore({id: "left-score", value: INC})
+                setScore({id: "right-score", value: INC})
+
+                document.getElementById("left-player").selectedIndex = rp;
+                document.getElementById("left-char").selectedIndex = rc;
+                document.getElementById("right-player").selectedIndex = lp;
+                document.getElementById("right-char").selectedIndex = lc;
+            }
+
+            /**
+             * Send the current configuration to the paired view.
+             */
+            var ws = null
+            var ready = false
+            function update() {
+                if (ws == null) {
+                    ip = document.getElementById('server-ip')
+
+                    ws = new WebSocket("ws://"+ip.value+"/control")
+
+                    ws.addEventListener("open", function (event) {
+                        ready = true;
+                    })
+                    ws.addEventListener("close", function (event) {
+                        window.alert("Connection closed: '"+event.reason+"'");
+                        ready = false;
+                        ws = null
+                    })
+                    ws.addEventListener("message", function (event) {
+                        window.alert("Received message: '"+event.data+"'");
+                    })
+                    ws.addEventListener("error", function (event) {
+                        window.alert("Error sending message!");
+                    })
+                }
+
+                if (!ready) {
+                    window.alert("Not ready, yet! Try again later...");
+                    return;
+                }
+
+                /* Before updating, set the current match */
+                state.game.match = 1 + state.left.score + state.right.score;
+                if (state.game.match > state.game.numMatches) {
+                    state.game.match = state.game.numMatches;
+                }
+                state.game.tournament = document.getElementById("tournament").value;
+
+                ws.send(JSON.stringify(state));
+            }
+
+            function addOptionToSelect(select, value, text) {
+                var option = document.createElement("option");
+
+                option.value = value;
+                option.text = text;
+
+                select.add(option);
+            }
+
+            document.addEventListener("DOMContentLoaded", function (event) {
+                // Set the main tab as visible
+                setVisible({value: 'main'});
+
+                /*
+                // Copy the left player div into the right one
+                innerLeft = document.getElementById('inner-left');
+                rightDiv = document.getElementById('right');
+                clone = innerLeft.cloneNode(true)
+                var recReplace = function (node){
+                    for (child in node.children) {
+                        recReplace(child);
+                    }
+                    if (node.id !== undefined && typeof node.id === "string" &&
+                            node.id.indexOf("left") >= 0) {
+                        newId = node.id.replace("left", "right");
+                        node.setAttribute("id", newId);
+                    }
+                };
+                recReplace(clone);
+                rightDiv.appendChild(clone);
+                */
+
+                // Add all characters to the select
+                var leftCharSelect = document.getElementById('left-char');
+                var rightCharSelect = document.getElementById('right-char');
+                var leftPlayerSelect = document.getElementById('left-player');
+                var rightPlayerSelect = document.getElementById('right-player');
+
+                for (i in character_list) {
+                        var ch = character_list[i];
+
+                        addOptionToSelect(leftCharSelect, i, ch.name);
+                        addOptionToSelect(rightCharSelect, i, ch.name);
+                }
+                for (i in player_list) {
+                        var ch = player_list[i];
+
+                        addOptionToSelect(leftPlayerSelect, i, ch.name);
+                        addOptionToSelect(rightPlayerSelect, i, ch.name);
+                }
+
+                updatePlayer({id: "left-player", selectedIndex: 0})
+                updatePlayer({id: "left-char", selectedIndex: 0})
+                updatePlayer({id: "right-player", selectedIndex: 0})
+                updatePlayer({id: "right-char", selectedIndex: 0})
+            })
+        </script>
+    </head>
+    <body id='body'>
+        <div class='block'>
+            <input class='big-button' type='button' value='main' onclick='setVisible(this);' />
+            <input class='big-button' type='button' value='game' onclick='setVisible(this);' />
+            <input class='big-button' type='button' value='left' onclick='setVisible(this);' />
+            <input class='big-button' type='button' value='right' onclick='setVisible(this);' />
+            <input class='big-button' type='button' value='others' onclick='setVisible(this);' />
+        </div>
+
+        <div class='block tab' id='main'>
+            <h1> Main commands </h1>
+
+            <input class='field button' type='button' value='UPDATE' onclick='update();' />
+            <input class='field button' type='button' value='Reset score' onclick='resetScore();' />
+            <input class='field button' type='button' value='Switch players' onclick='switchPlayers();' />
+
+            <h2> Server address </h2>
+            <input class='field' id='server-ip' type='text' value='192.168.0.6:60000' />
+        </div>
+
+        <div class='block tab' id='game'>
+            <h1> Tournament cofigurations </h1>
+
+            <h2> Tournamente name </h2>
+            <input class='field' id='tournament' type='text' value='12º Torneio da Discórdia 2017 - Rivals of Aether' />
+
+            <h2> Bracket side </h2>
+            <label class='field'> <input type='radio' name='bracket-side' value='winners' onclick='setBracket(this);' checked/> Winner's </label>
+            <label class='field'> <input type='radio' name='bracket-side' value='losers' onclick='setBracket(this);'/> Loser's </label>
+
+            <h2> Number of matches </h2>
+            <label class='field'> <input type='radio' name='best-of' value=3 onclick='setBestOf(this);' checked/> Best of 3 </label>
+            <label class='field'> <input type='radio' name='best-of' value=5 onclick='setBestOf(this);'/> Best of 5 </label>
+
+            <h2> Current round </h2>
+            <label class='field'> <input type='radio' name='round' value='grand-finals' onclick='setRound(this);'/> Grand Finals </label>
+            <label class='field'> <input type='radio' name='round' value='finals' onclick='setRound(this);'/> Finals </label>
+            <label class='field'> <input type='radio' name='round' value='semis' onclick='setRound(this);'/> Semis </label>
+
+            <label class='field'>
+                <input type='radio' name='round' value='pools' onclick='setRound(this);' checked/>
+                "Pools" <label id='round-num'>1</label>
+            </label>
+
+            <h3> Set pools' round </h3>
+            <div style='margin-left: 10em;'>
+                <input class='button' type='button' value='Reset' onclick='setPool(this, "round-num");' />
+                <input class='button' type='button' value='-' onclick='setPool(this, "round-num");' />
+                <input class='button' type='button' value='+' onclick='setPool(this, "round-num");' />
+            </div>
+        </div>
+
+        <div class='block tab' id='left'>
+            <h1> Left player configurations </h1>
+
+            <div id='inner-left'>
+                <label class='compact-field'>
+                    Avatar:
+                    <select id='left-player' onchange='updatePlayer(this);'>
+                    </select>
+                    <img class='avatar' id='left-player-img' />
+                </label>
+
+                <label class='compact-field'>
+                    Rival:
+                    <select id='left-char' onchange='updatePlayer(this);'>
+                    </select>
+                    <img class='avatar' id='left-char-img' />
+                </label>
+
+                <label class='compact-field'>
+                    <input class='button' id='left-score' type='button' value='Reset' onclick='setScore(this);' />
+                    Score: <label id='left-score-txt'>0</label>
+                    <input class='button' id='left-score' type='button' value='+' onclick='setScore(this);' />
+                </label>
+            </div>
+        </div>
+
+        <div class='block tab' id='right'>
+            <h1> Right player configurations </h1>
+
+            <div id='inner-right'>
+                <label class='compact-field'>
+                    Avatar:
+                    <select id='right-player' onchange='updatePlayer(this);'>
+                    </select>
+                    <img class='avatar' id='right-player-img' />
+                </label>
+
+                <label class='compact-field'>
+                    Rival:
+                    <select id='right-char' onchange='updatePlayer(this);'>
+                    </select>
+                    <img class='avatar' id='right-char-img' />
+                </label>
+
+                <label class='compact-field'>
+                    <input class='button' id='right-score' type='button' value='Reset' onclick='setScore(this);' />
+                    Score: <label id='right-score-txt'>0</label>
+                    <input class='button' id='right-score' type='button' value='+' onclick='setScore(this);' />
+                </label>
+            </div>
+        </div>
+
+        <div class='block tab' id='others'>
+            <h1> Other configurations </h1>
+
+            <h2> Camera view: </h2>
+            <label class='field'> <input type='radio' name='cam-view' onclick='setCamView(true);' checked/> enabled </label>
+            <label class='field'> <input type='radio' name='cam-view' onclick='setCamView(false);'/> disabled </label>
+
+            <h2> Gamepad view: </h2>
+            <label class='field'> <input type='radio' name='gamepad-view' onclick='setGamepadView(true);' checked/> enabled </label>
+            <label class='field'> <input type='radio' name='gamepad-view' onclick='setGamepadView(false);'/> disabled </label>
+        </div>
+    </body>
+</html>

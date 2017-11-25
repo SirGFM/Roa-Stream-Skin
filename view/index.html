@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> GFM's Gaming Arena </title>
+        <meta charset="utf-8" name="viewport" content="width=1280, height=720, initial-scale=1" />
+        <meta name="keywords" content="stream,skin" />
+        <meta name="description" content="GFM's streaming skin" />
+        <meta name="author" content="Gabriel Francisco Mandaji" />
+
+        <style>
+            @font-face {
+                /** m5x7 by Daniel Linssen. Get it from https://managore.itch.io/m5x7. */
+                font-family: "m5x7";
+                src: url(/res/m5x7.ttf) format("truetype");
+            }
+            html, body {
+                width: 1280px;
+                height: 720px;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background-color: #222034;
+                background-image: url('/img/bg.png');
+                color: #cbdbfc;
+                font-size: 1em;
+            }
+            img {
+                /** Basic nearest-neighbour behaviour.
+                 * Source: http://stackoverflow.com/questions/14068103/disable-antialising-when-scaling-images */
+                image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+                image-rendering: -moz-crisp-edges;          /* Firefox                        */
+                image-rendering: -o-crisp-edges;            /* Opera                          */
+                image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+                image-rendering: pixelated;                 /* Chrome */
+                image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+                -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+            }
+            label.compute-width {
+                position: absolute;
+                visibility: hidden;
+                width: auto;
+                height: auto;
+                white-space: nowrap;
+            }
+            /** Fuck whoever defined those stupid names. */
+            .fixed {
+                position: absolute;
+            }
+            .root {
+                position: relative;
+            }
+            .child {
+                position: absolute;
+            }
+            .m5x7 {
+                font-family: "m5x7";
+                font-size: 48px;
+                display: block;
+                overflow: hidden;
+                word-break: break-all;
+            }
+            .centered {
+                text-align: center;
+            }
+            .outlined {
+                text-shadow: -1px -1px 0 #000,
+                              1px -1px 0 #000,
+                             -1px  1px 0 #000,
+                              1px  1px 0 #000;  
+            }
+            @keyframes tweenLeft {
+                from { transform: translateX(0); }
+                to { transform: translateX(-110%); }
+            }
+            @keyframes tweenRight {
+                from { transform: translateX(0); }
+                to { transform: translateX(110%); }
+            }
+            .tween-out {
+                 animation-duration: 1s;
+                 animation-iteration-count: 1;
+                 animation-timing-function: ease-in;
+                 animation-fill-mode: both;
+            }
+            .tween-in {
+                 animation-duration: 1s;
+                 animation-iteration-count: 1;
+                 animation-direction: reverse;
+                 animation-timing-function: ease-in;
+                 animation-fill-mode: both;
+            }
+            .tween-left {
+                 animation-name: tweenLeft;
+            }
+            .tween-right {
+                 animation-name: tweenRight;
+            }
+            @keyframes fade {
+                from { opacity: 1.0; }
+                to { opacity: 0.0; }
+            }
+            .fade-in {
+                 animation-name: fade;
+                 animation-duration: 0.5s;
+                 animation-iteration-count: 1;
+                 animation-direction: reverse;
+                 animation-timing-function: ease-in;
+                 animation-fill-mode: both;
+            }
+            .fade-out {
+                 animation-name: fade;
+                 animation-duration: 0.5s;
+                 animation-iteration-count: 1;
+                 animation-timing-function: ease-in;
+                 animation-fill-mode: both;
+            }
+            /**
+             * Keyframes should be generated dynamicaly, per-name. This is the idea:
+             *
+             *  1. Calculate width of label with name (spawn/set hidden element to calculate?)
+             *  2. Append the name twice (or, at least, the first few characters), so it scrolls nicely
+             *  3. Set from = text-index: 0; to = text-index: -width
+             *  4. Calculate the animation duration as t = width / text_speed (px/s)
+             *
+             * This would make the animation behave (theoretically) the same for every name, no matter how long.
+             */
+            @keyframes scrolltext {
+                from { text-indent: 0%; }
+                to { text-indent: -50%; }
+            }
+            .scroll-text-anim {
+                 animation-duration: 5s;
+                 animation-name: scrolltext;
+                 animation-iteration-count: infinite;
+                 animation-timing-function: linear;
+            }
+        </style>
+
+        <script type="text/javascript" src="/script/common.js"></script>
+        <script type="text/javascript" src="/script/players.js"></script>
+        <script>
+            /**
+             * Compute the length of a given string.
+             *
+             * @param{txt} The string
+             * @param{addTrailingSpace} Whether a single whitespace should be added at the end.
+             */
+            function getLabelLength(txt, addTrailingSpace) {
+                var width = 0;
+                let label = document.getElementById("label-width-calculator");
+
+                label.innerText = txt;
+                if (addTrailingSpace) {
+                    width = 15;
+                }
+                width += label.clientWidth;
+
+                label.innerText = "";
+
+                return width;
+            }
+
+            /**
+             * Check if a given value is inside an array.
+             *
+             * @param{arr} The array
+             * @param{val} The value
+             */
+            function isInArray(arr, val) {
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i] == val) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            /**
+             * Parse all query strings from a URL. Repeated names are
+             * overwritten (instead of added to a list).
+             *
+             * @param{url} The url to be parsed.
+             */
+            function parseURL(url) {
+                var cmds = undefined;
+                var ret = {};
+                var from = url.indexOf('?');
+
+                if (from == -1) {
+                    return ret;
+                }
+
+                // Retrieve the argument list, removing any trailing '/'
+                if (url[url.length-1] == '/') {
+                    cmds = url.substring(from+1, url.length-1);
+                }
+                else {
+                    cmds = url.substring(from+1, url.length);
+                }
+
+                // Parsing is quite simple: arguments are separated by '&' and name/value by '='.
+                cmdList = cmds.split('&')
+                for (var i = 0; i < cmdList.length; i++) {
+                    var name = undefined;
+                    var val = undefined;
+                    var cmd = cmdList[i];
+                    var split = cmd.indexOf('=');
+
+                    name = cmd.substring(0, split);
+                    val = cmd.substring(split+1);
+
+                    ret[name] = val;
+                }
+
+                return ret;
+            }
+
+            /** Event called when the websocket is closed */
+            function onWSClosed(event) {
+                window.alert("Connection closed: '"+event.reason+"'");
+                ws = null
+            }
+
+            /** Event called when there's an error with the websocket */
+            function onWSError(event) {
+                window.alert("Error sending message!");
+            }
+
+            /**
+             * Resets horizontal animations by removing direction tweens and
+             * adding a tween based on the element's DIRATTR custom attribute.
+             *
+             * @param{element} HTML element to be modified
+             */
+            function setAnimationDirection(element) {
+                try { element.classList.remove('tween-left'); } catch(e) {}
+                try { element.classList.remove('tween-right'); } catch(e) {}
+
+                void element.offsetWidth;
+
+                if (element.getAttribute(DIRATTR) == "left") {
+                    element.classList.add('tween-left');
+                }
+                else if (element.getAttribute(DIRATTR) == "right") {
+                    element.classList.add('tween-right');
+                }
+            }
+
+            /**
+             * Start a "show" animation for the given ID. The ID name is used
+             * to decided whether the element will actually be moved (in a
+             * "tween-in" animation) or if it will simply play a "fade-in"
+             * animation.
+             *
+             * @param{elementID} ID of the element to be animated.
+             */
+            function startTweenIn(elementID) {
+                var element = document.getElementById(elementID);
+
+                /** Remove any previous animation */
+                try { element.removeAttribute(ATTR); } catch(e) {}
+                try { element.classList.remove('tween-out'); } catch(e) {}
+                try { element.classList.remove('fade-out'); } catch(e) {}
+                void element.offsetWidth;
+
+                /** Update the object's animation */
+                switch (element.id) {
+                    case "left-char":
+                    case "left-player":
+                    case "right-char":
+                    case "right-player":
+                    case "camera-view":
+                    case "gamepad-view": {
+                        setAnimationDirection(element);
+                        element.classList.add('tween-in');
+                    } break;
+                    case "tournament":
+                    case "round":
+                    case "match":
+                    case "left-player-score":
+                    case "right-player-score": {
+                        element.classList.add('fade-in');
+                    } break;
+                }
+            }
+
+            /**
+             * Start a "hide" animation for the given ID. The ID name is used
+             * to decided whether the element will actually be moved (in a
+             * "tween-out" animation) or if it will simply play a "fade-out"
+             * animation.
+             *
+             * If extra data is supplied, it's stored on the object's ATTR as
+             * a JSON string.
+             *
+             * @param{elementID} ID of the element to be animated.
+             * @param{data} Extra data used to update the element when the
+             *              animation finishes.
+             */
+            function startTweenOut(elementID, data) {
+                var jsonData = undefined;
+                var element = document.getElementById(elementID);
+
+                if (data !== undefined) {
+                    jsonData = JSON.stringify(data);
+                }
+
+                /** Check if the desired animation is already running */
+                if (jsonData !== undefined &&
+                        element.getAttribute(ATTR) == jsonData) {
+                    return;
+                }
+
+                /** Remove any previous animation */
+                try { element.classList.remove('tween-in'); } catch(e) {}
+                try { element.classList.remove('fade-in'); } catch(e) {}
+                void element.offsetWidth;
+
+                /** Update the object's animation */
+                switch (element.id) {
+                    case "left-char":
+                    case "left-player":
+                    case "right-char":
+                    case "right-player":
+                    case "camera-view":
+                    case "gamepad-view": {
+                        setAnimationDirection(element);
+                        element.classList.add('tween-out');
+                    } break;
+                    case "tournament":
+                    case "round":
+                    case "match":
+                    case "left-player-score":
+                    case "right-player-score": {
+                        element.classList.add('fade-out');
+                    } break;
+                }
+
+                /** Set the custom data, used to update the object */
+                if (jsonData !== undefined) {
+                    element.setAttribute(ATTR, jsonData);
+                }
+            }
+
+            /**
+             * Event called when a message is received by the websocket.
+             *
+             * Decides whether (and which) elements should be updated and setup
+             * their animations.
+             */
+            function onWSMessage(event) {
+                curState = JSON.parse(event.data)
+
+                if (state.game.tournament != curState.game.tournament) {
+                    startTweenOut('tournament', curState.game);
+                }
+                if (state.game.side != curState.game.side) {
+                    startTweenOut('round', curState.game);
+                }
+                if (state.game.numMatches != curState.game.numMatches) {
+                    startTweenOut('match', curState.game);
+                }
+                if (state.game.round != curState.game.round) {
+                    startTweenOut('round', curState.game);
+                }
+                if (state.game.rpool != curState.game.rpool) {
+                    startTweenOut('round', curState.game);
+                }
+                if (state.game.match != curState.game.match) {
+                    startTweenOut('match', curState.game);
+                }
+                if (state.left.player != curState.left.player) {
+                    startTweenOut('left-player', curState.left);
+                }
+                if (state.left.character != curState.left.character) {
+                    startTweenOut('left-char', curState.left);
+                }
+                if (state.left.score != curState.left.score) {
+                    startTweenOut('left-player-score', curState.left.score);
+                }
+                if (state.right.player != curState.right.player) {
+                    startTweenOut('right-player', curState.right);
+                }
+                if (state.right.character != curState.right.character) {
+                    startTweenOut('right-char', curState.right);
+                }
+                if (state.right.score != curState.right.score) {
+                    startTweenOut('right-player-score', curState.right.score);
+                }
+                if (state.other.camera != curState.other.camera) {
+                    if (curState.other.camera) {
+                        startTweenIn('camera-view');
+                    }
+                    else {
+                        startTweenOut('camera-view');
+                    }
+
+                    state.other.camera = curState.other.camera;
+                }
+                if (state.other.gamepad != curState.other.gamepad) {
+                    if (curState.other.gamepad) {
+                        startTweenIn('gamepad-view');
+                    }
+                    else {
+                        startTweenOut('gamepad-view');
+                    }
+
+                    state.other.gamepad = curState.other.gamepad;
+                }
+            }
+
+            /** Event called when an animation finishes playing */
+            function onAnimationEnd(event) {
+                var data = undefined;
+                var el = event.target;
+                var jsonData = el.getAttribute(ATTR);
+
+                if (jsonData != "" && jsonData != null) {
+                    data = JSON.parse(jsonData);
+                    el.removeAttribute(ATTR);
+                }
+
+                if (isInArray(el.classList, 'tween-out')) {
+                    switch (el.id) {
+                        case "left-char":
+                            state.left.character = data.character;
+                        case "right-char": {
+                            if (el.id == "right-char") {
+                                state.right.character = data.character;
+                            }
+
+                            let idx = data.character;
+                            let tag = document.getElementById(el.id+"-tag");
+                            let img = document.getElementById(el.id+"-img");
+
+                            tag.src = character_list[idx].tag;
+                            img.src = character_list[idx].img;
+                        } break;
+                        case "left-player":
+                            state.left.player = data.player;
+                            state.left.score = data.score;
+                        case "right-player": {
+                            if (el.id == "right-player") {
+                                state.right.player = data.player;
+                                state.right.score = data.score;
+                            }
+
+                            let idx = data.player;
+                            let img = document.getElementById(el.id+"-avatar");
+                            let name = document.getElementById(el.id+"-name");
+                            let score = document.getElementById(el.id+"-score");
+
+                            img.src = player_list[idx].img;
+                            if (getLabelLength(player_list[idx].name) > name.clientWidth) {
+                                // TODO Make the name scroll around
+                                name.classList.add('centered');
+                                name.innerText = player_list[idx].name;
+                            }
+                            else {
+                                name.classList.add('centered');
+                                name.innerText = player_list[idx].name;
+                            }
+                            score.innerText = data.score;
+                        } break;
+                        default: {
+                            /** Not an ID that should be automatically updated */
+                            return;
+                        }
+                    }
+
+                    startTweenIn(el.id);
+                }
+                else if (isInArray(el.classList, 'fade-out')) {
+                    var text = "";
+
+                    switch (el.id) {
+                        case "round": {
+                            state.game.side = data.side;
+                            state.game.round = data.round;
+                            state.game.rpool = data.rpool;
+
+                            if (data.side == WINNERS) {
+                                text = "Winner's "
+                            }
+                            else if (data.side == LOSERS) {
+                                text = "Loser's "
+                            }
+                            switch (data.round) {
+                                case POOLS: text += "Round "+data.rpool; break;
+                                case SEMIS: text += "Semifinals"; break;
+                                case FINALS: text += "Finals"; break;
+                                case GRANDFINALS: text += "Grand Finals"; break;
+                            }
+                        } break;
+                        case "match": {
+                            state.game.numMatches = data.numMatches;
+                            state.game.match = data.match;
+
+                            if (data.numMatches == BO3) {
+                                text = "Bo3 - "
+                            }
+                            else if (data.numMatches == BO5) {
+                                text = "Bo5 - "
+                            }
+
+                            text += "Match " + data.match
+                        } break;
+                        case "tournament": {
+                            state.game.tournament = data.tournament;
+                            text = data.tournament;
+                        } break;
+                        case "left-player-score": {
+                            state.left.score = data;
+                            text = data;
+                        } break;
+                        case "right-player-score": {
+                            state.right.score = data;
+                            text = data;
+                        } break;
+                    }
+
+                    el.innerText = text;
+                    startTweenIn(el.id);
+                }
+            }
+
+            /**
+             * Bootstrap, after the page is loaded
+             */
+            var ws = null
+            document.addEventListener("DOMContentLoaded", function (event) {
+                var ip = 'localhost'
+                var port = '60000'
+
+                var args = parseURL(window.location.href)
+                if ("ip" in args) {
+                    ip = args.ip;
+                }
+                if ("port" in args) {
+                    port = args.port;
+                }
+
+                ws = new WebSocket("ws://"+ip+":"+port+"/view")
+                ws.addEventListener("close", onWSClosed);
+                ws.addEventListener("message", onWSMessage);
+                ws.addEventListener("error", onWSError);
+
+                let addAnimEnd = function (id) {
+                    var element = document.getElementById(id)
+                    element.addEventListener("animationend", onAnimationEnd)
+                }
+
+                addAnimEnd("left-char")
+                addAnimEnd("left-player")
+                addAnimEnd("right-char")
+                addAnimEnd("right-player")
+                addAnimEnd("left-player-score")
+                addAnimEnd("right-player-score")
+                addAnimEnd("round")
+                addAnimEnd("match")
+                addAnimEnd("tournament")
+
+                // This is ugly, but gets rid of a corner case
+                getLabelLength('fix coner case');
+
+                // This is ugly(2), but forces a full update
+                state.game.tournament = "";
+                state.game.side = "";
+                state.game.numMatches = "";
+                state.game.round = "";
+                state.game.rpool = "";
+                state.game.match = "";
+                state.left.player = -1;
+                state.left.character = -1;
+                state.left.score = 0;
+                state.right.player = -1;
+                state.right.character = -1;
+                state.right.score = 0;
+                state.other.camera = "";
+                state.other.gamepad = "";
+            })
+        </script>
+    </head>
+    <body>
+        <img class='fixed' style='width: 988px; left: 144px; top: 6px;' id='game-view' src='/img/skin/game_border.png' />
+
+        <div class='root' data-direction='left' style='left: 4px; top: 160px;' id='left-char'>
+            <img class='child' style='width: 136px; left: 0px; top: 0px;' src='/img/skin/char_border.png'/>
+            <img class='child' style='width: 108px; left: 16px; top: 12px;' id='left-char-img' />
+            <img class='child' style='width: 108px; left: 16px; top: 80px;' id='left-char-tag' />
+        </div>
+
+        <div class='root' data-direction='left' style='left: 0px; top: 0px;' id='left-player'>
+            <img class='child' style='width: 474px; left: 0px; top: 0px;' src='/img/skin/left_player_border.png'/>
+            <img class='child' style='width: 156px; left: 12px; top: 12px;' id='left-player-avatar' />
+            <label class='child m5x7 outlined' style='width: 226px; height: 40px; left: 182px; top: 8px;' id='left-player-name'> </label>
+            <label class='child m5x7 outlined centered' style='width: 40px; height: 40px; left: 422px; top: 8px;' id='left-player-score'> </label>
+        </div>
+
+        <div class='root' data-direction='right' style='left: 1140px; top: 160px;' id='right-char'>
+            <img class='child' style='width: 136px; left: 0px; top: 0px;' src='/img/skin/char_border.png'/>
+            <img class='child' style='width: 108px; left: 16px; top: 12px;' id='right-char-img' />
+            <img class='child' style='width: 108px; left: 16px; top: 80px;' id='right-char-tag' />
+        </div>
+
+        <div class='root' data-direction='right' style='left: 802px; top: 0px;' id='right-player'>
+            <img class='child' style='width: 478px; left: 0px; top: 0px;' src='/img/skin/right_player_border.png'/>
+            <img class='child' style='width: 156px; left: 310px; top: 12px;' id='right-player-avatar' />
+            <label class='child m5x7 outlined' style='width:226px; height: 40px; left: 70px; top: 8px;' id='right-player-name'> </label>
+            <label class='child m5x7 outlined centered' style='width: 40px; height: 40px; left: 16px; top: 8px;' id='right-player-score'> </label>
+        </div>
+
+        <img class='root' data-direction='left' style='width: 220px; left: 2px; top: 554px;' id='camera-view' src='/img/skin/small_border.png' />
+
+        <div class='root' data-direction='right' style='left: 1058px; top: 390px;' id='gamepad-view'>
+            <!-- TODO Add gamepad -->
+            <img class='child' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
+        </div>
+
+        <label class='root m5x7 outlined centered' style='top: 420px;' id='round'> side / round </label>
+        <label class='root m5x7 outlined centered' style='top: 420px;' id='match'> match </label>
+        <label class='root m5x7 outlined centered' style='top: 420px;' id='tournament'> name </label>
+
+        <label class='m5x7 outlined compute-width' id='label-width-calculator'> </label>
+    </body>
+</html>
