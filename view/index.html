@@ -580,6 +580,37 @@
                 state.right.score = 0;
                 state.other.camera = "";
                 state.other.gamepad = "";
+
+                // Create the gamepad object
+                let gamepad = {};
+                gamepad.l2 = document.getElementById('gamepad_l2');
+                gamepad.l1 = document.getElementById('gamepad_l1');
+                gamepad.r2 = document.getElementById('gamepad_r2');
+                gamepad.r1 = document.getElementById('gamepad_r1');
+                gamepad.home = document.getElementById('gamepad_home');
+                gamepad.select = document.getElementById('gamepad_select');
+                gamepad.start = document.getElementById('gamepad_start');
+                gamepad.x = document.getElementById('gamepad_x');
+                gamepad.y = document.getElementById('gamepad_y');
+                gamepad.a = document.getElementById('gamepad_a');
+                gamepad.b = document.getElementById('gamepad_b');
+                gamepad.up = document.getElementById('gamepad_up');
+                gamepad.down = document.getElementById('gamepad_down');
+                gamepad.left = document.getElementById('gamepad_left');
+                gamepad.right = document.getElementById('gamepad_right');
+                gamepad.lstick = {};
+                gamepad.lstick.img = document.getElementById('gamepad_lstick');
+                gamepad.lstick.cx = {};
+                gamepad.lstick.cy = {};
+                gamepad.lstick.hw = {};
+                gamepad.lstick.hh = {};
+                gamepad.rstick = {};
+                gamepad.rstick.img = document.getElementById('gamepad_rstick');
+                gamepad.rstick.cx = {};
+                gamepad.rstick.cy = {};
+                gamepad.rstick.hw = {};
+                gamepad.rstick.hh = {};
+                setupGamepad(gamepad);
             })
         </script>
     </head>

@@ -34,7 +34,7 @@ let _gamepadObjects = null;
  *       - hw: Half width of the stick area
  *       - hh: Half height of the stick area
  */
-function setupUI(objects) {
+function setupGamepad(objects) {
     _gamepadObjects = objects;
 }
 
