@@ -600,16 +600,16 @@
                 gamepad.right = document.getElementById('gamepad_right');
                 gamepad.lstick = {};
                 gamepad.lstick.img = document.getElementById('gamepad_lstick');
-                gamepad.lstick.cx = {};
-                gamepad.lstick.cy = {};
-                gamepad.lstick.hw = {};
-                gamepad.lstick.hh = {};
+                gamepad.lstick.hw = gamepad.lstick.img.width / 2;
+                gamepad.lstick.hh = gamepad.lstick.img.height / 2;
+                gamepad.lstick.cx = gamepad.lstick.img.offsetLeft + gamepad.lstick.hw;
+                gamepad.lstick.cy = gamepad.lstick.img.offsetTop + gamepad.lstick.hh;
                 gamepad.rstick = {};
                 gamepad.rstick.img = document.getElementById('gamepad_rstick');
-                gamepad.rstick.cx = {};
-                gamepad.rstick.cy = {};
-                gamepad.rstick.hw = {};
-                gamepad.rstick.hh = {};
+                gamepad.rstick.hw = gamepad.rstick.img.width / 2;
+                gamepad.rstick.hh = gamepad.rstick.img.height / 2;
+                gamepad.rstick.cx = gamepad.rstick.img.offsetLeft + gamepad.rstick.hw;
+                gamepad.rstick.cy = gamepad.rstick.img.offsetTop + gamepad.rstick.hh;
                 setupGamepad(gamepad);
             })
         </script>

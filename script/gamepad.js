@@ -1,9 +1,17 @@
 let _interval = null;
 let _gamepadObjects = null;
+let _fps = 30;
 
 /**
  * Stores the object with references for every gamepad button that may be
  * activated/moved.
+ *
+ * To simplify updating it, every button is normalized into an object that
+ * has tha actual DOM and a bool stating whether it's visible or not.
+ *
+ * Also, another attribute 'button' is added to every button, mapping the
+ * button to the index within the default mapping (see
+ * https://w3c.github.io/gamepad/#remapping).
  *
  * The following attributes/sub-objects shall be accessed:
  *   - l2: The left trigger (farther shoulder button)
@@ -36,6 +44,49 @@ let _gamepadObjects = null;
  */
 function setupGamepad(objects) {
     _gamepadObjects = objects;
+
+    for (var button in _gamepadObjects) {
+        if (button == 'lstick' || button == 'rstick') {
+            continue
+        }
+
+        val = _gamepadObjects[button]
+        _gamepadObjects[button] = {}
+        _gamepadObjects[button].img = val;
+        _gamepadObjects[button].visible = false;
+    }
+
+    _gamepadObjects.b.button = 1;
+    _gamepadObjects.a.button = 0;
+    _gamepadObjects.x.button = 2;
+    _gamepadObjects.y.button = 3;
+    _gamepadObjects.l1.button = 4;
+    _gamepadObjects.r1.button = 5;
+    _gamepadObjects.l2.button = 6;
+    _gamepadObjects.r2.button = 7;
+    _gamepadObjects.select.button = 8;
+    _gamepadObjects.start.button = 9;
+    _gamepadObjects.up.button = 12;
+    _gamepadObjects.down.button = 13;
+    _gamepadObjects.left.button = 14;
+    _gamepadObjects.right.button = 15;
+    _gamepadObjects.home.button = 16;
+}
+
+/** Reset the gamepad back to neutral (fully released) position */
+function resetGamepad() {
+    for (let button in _gamepadObjects) {
+        if (button == 'lstick' || button == 'rstick') {
+            stick = _gamepadObjects[button].img
+
+            stick.img.style.left = (stick.cx - stick.hw) + 'px';
+            stick.img.style.top = (stick.cy - stick.hh) + 'px';
+        }
+        else {
+            _gamepadObjects[button].visible = false;
+            _gamepadObjects[button].img.style.visibility = 'hidden';
+        }
+    }
 }
 
 /**
@@ -50,7 +101,7 @@ function getGamepadList() {
 /** Set a callback for updating the buttons */
 function enableGamepad() {
     if (_interval === null ) {
-        _interval = setInterval(pollGamepad, 250);
+        _interval = setInterval(pollGamepad, 1000 / _fps);
     }
 }
 
@@ -60,18 +111,57 @@ function disableGamepad() {
     _interval = null;
 }
 
+/** Enables the gamepad if at least one is active */
 window.addEventListener("gamepadconnected", function(e) {
-    if (getGamepadList().length() > 0) {
-        // No 'onpress' event, gotta pool...
+    if (getGamepadList().length > 0) {
+        /* No 'onpress' event, gotta pool... */
         enableGamepad();
     }
 });
 
+/** Disables the gamepad if none is active */
 window.addEventListener("gamepaddisconnected", function(e) {
-    if (getGamepadList().length() <= 0) {
+    if (getGamepadList().length <= 0) {
         disableGamepad();
     }
 });
 
+/** Check whether 'b' is pressed */
+function buttonPressed(b) {
+    if (typeof(b) == "object") {
+        return b.pressed;
+    }
+    return b == 1.0;
+}
+
+/** Update the gamepad's objects */
 function pollGamepad() {
+    let _gps = getGamepadList();
+
+    /* Shouldn't happen... */
+    if (_gps.length <= 0) {
+        return;
+    }
+    let _gp = _gps[0];
+
+    /* Iterate through every button and update it */
+    for (let buttonName in _gamepadObjects) {
+        if (buttonName == 'lstick' || buttonName == 'rstick') {
+        }
+        else {
+            let button = _gamepadObjects[buttonName];
+            let i = button.button;
+
+            if (i < _gp.buttons.length &&
+                    buttonPressed(_gp.buttons[i]) != button.visible) {
+                button.visible = buttonPressed(_gp.buttons[i]);
+                if (button.visible) {
+                    button.img.style.visibility = 'visible';
+                }
+                else {
+                    button.img.style.visibility = 'hidden';
+                }
+            }
+        }
+    }
 }
