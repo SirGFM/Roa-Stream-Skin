@@ -100,7 +100,7 @@ function getGamepadList() {
 
 /** Set a callback for updating the buttons */
 function enableGamepad() {
-    if (_interval === null ) {
+    if (_interval === null) {
         _interval = setInterval(pollGamepad, 1000 / _fps);
     }
 }
@@ -111,9 +111,27 @@ function disableGamepad() {
     _interval = null;
 }
 
+/**
+ * Retrieve the actual number of connected gamepads, given a list retrieved from
+ * 'getGamepadList()'.
+ */
+function getGamepadCount(gpList) {
+    let i = 0;
+    let count = 0;
+
+    while (i < gpList.length) {
+        if (gpList[i] != null) {
+            count++;
+        }
+        i++;
+    }
+
+    return count;
+}
+
 /** Enables the gamepad if at least one is active */
 window.addEventListener("gamepadconnected", function(e) {
-    if (getGamepadList().length > 0) {
+    if (getGamepadCount(getGamepadList()) > 0) {
         /* No 'onpress' event, gotta pool... */
         enableGamepad();
     }
@@ -121,7 +139,7 @@ window.addEventListener("gamepadconnected", function(e) {
 
 /** Disables the gamepad if none is active */
 window.addEventListener("gamepaddisconnected", function(e) {
-    if (getGamepadList().length <= 0) {
+    if (getGamepadCount(getGamepadList()) <= 0) {
         disableGamepad();
     }
 });
