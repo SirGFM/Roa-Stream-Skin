@@ -79,8 +79,8 @@ function resetGamepad() {
         if (button == 'lstick' || button == 'rstick') {
             stick = _gamepadObjects[button].img
 
-            stick.img.style.left = (stick.cx - stick.hw) + 'px';
-            stick.img.style.top = (stick.cy - stick.hh) + 'px';
+            stick.img.style.left = (stick.cx - axis.img.width / 2) + 'px';
+            stick.img.style.top = (stick.cy - axis.img.height / 2) + 'px';
         }
         else {
             _gamepadObjects[button].visible = false;
@@ -147,6 +147,20 @@ function pollGamepad() {
     /* Iterate through every button and update it */
     for (let buttonName in _gamepadObjects) {
         if (buttonName == 'lstick' || buttonName == 'rstick') {
+            let axis = _gamepadObjects[buttonName];
+            let x = 0;
+            let y = 0;
+
+            if (buttonName == 'lstick' && _gp.axes.length >= 2) {
+                x = _gp.axes[0];
+                y = _gp.axes[1];
+            } else if (buttonName == 'rstick' && _gp.axes.length >= 4) {
+                x = _gp.axes[2];
+                y = _gp.axes[3];
+            }
+
+            axis.img.style.left = (axis.cx - axis.img.width / 2 + axis.hw * x) + 'px';
+            axis.img.style.top = (axis.cy - axis.img.height / 2 + axis.hh * y) + 'px';
         }
         else {
             let button = _gamepadObjects[buttonName];
