@@ -100,15 +100,17 @@ function getGamepadList() {
 
 /** Set a callback for updating the buttons */
 function enableGamepad() {
-    if (_interval === null) {
+    if (_interval === null && getGamepadCount(getGamepadList()) > 0) {
         _interval = setInterval(pollGamepad, 1000 / _fps);
     }
 }
 
 /** Remove the callback for updating the buttons */
-function disableGamepad() {
-    clearInterval(_interval);
-    _interval = null;
+function disableGamepad(force = false) {
+    if (force || getGamepadCount(getGamepadList()) <= 0 && _interval !== null) {
+        clearInterval(_interval);
+        _interval = null;
+    }
 }
 
 /**
@@ -131,17 +133,13 @@ function getGamepadCount(gpList) {
 
 /** Enables the gamepad if at least one is active */
 window.addEventListener("gamepadconnected", function(e) {
-    if (getGamepadCount(getGamepadList()) > 0) {
-        /* No 'onpress' event, gotta pool... */
-        enableGamepad();
-    }
+    /* No 'onpress' event, gotta pool... */
+    enableGamepad();
 });
 
 /** Disables the gamepad if none is active */
 window.addEventListener("gamepaddisconnected", function(e) {
-    if (getGamepadCount(getGamepadList()) <= 0) {
-        disableGamepad();
-    }
+    disableGamepad();
 });
 
 /** Check whether 'b' is pressed */

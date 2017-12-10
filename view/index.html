@@ -464,6 +464,10 @@
                             }
                             score.innerText = data.score;
                         } break;
+                        case "gamepad-view": {
+                            disableGamepad(true);
+                            return;
+                        } break;
                         default: {
                             /** Not an ID that should be automatically updated */
                             return;
@@ -524,6 +528,17 @@
                     el.innerText = text;
                     startTweenIn(el.id);
                 }
+                else if (isInArray(el.classList, 'tween-in')) {
+                    switch (el.id) {
+                        case "gamepad-view": {
+                            enableGamepad();
+                        } break;
+                        default: {
+                            /** Not an ID that should be automatically updated */
+                            return;
+                        }
+                    }
+                }
             }
 
             /**
@@ -561,6 +576,7 @@
                 addAnimEnd("round")
                 addAnimEnd("match")
                 addAnimEnd("tournament")
+                addAnimEnd("gamepad-view")
 
                 // This is ugly, but gets rid of a corner case
                 getLabelLength('fix coner case');
