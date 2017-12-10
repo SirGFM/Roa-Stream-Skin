@@ -139,6 +139,7 @@
 
         <script type="text/javascript" src="/script/common.js"></script>
         <script type="text/javascript" src="/script/players.js"></script>
+        <script type="text/javascript" src="/script/gamepad.js"></script>
         <script>
             /**
              * Compute the length of a given string.
@@ -463,6 +464,10 @@
                             }
                             score.innerText = data.score;
                         } break;
+                        case "gamepad-view": {
+                            disableGamepad(true);
+                            return;
+                        } break;
                         default: {
                             /** Not an ID that should be automatically updated */
                             return;
@@ -523,6 +528,17 @@
                     el.innerText = text;
                     startTweenIn(el.id);
                 }
+                else if (isInArray(el.classList, 'tween-in')) {
+                    switch (el.id) {
+                        case "gamepad-view": {
+                            enableGamepad();
+                        } break;
+                        default: {
+                            /** Not an ID that should be automatically updated */
+                            return;
+                        }
+                    }
+                }
             }
 
             /**
@@ -560,6 +576,7 @@
                 addAnimEnd("round")
                 addAnimEnd("match")
                 addAnimEnd("tournament")
+                addAnimEnd("gamepad-view")
 
                 // This is ugly, but gets rid of a corner case
                 getLabelLength('fix coner case');
@@ -579,6 +596,37 @@
                 state.right.score = 0;
                 state.other.camera = "";
                 state.other.gamepad = "";
+
+                // Create the gamepad object
+                let gamepad = {};
+                gamepad.l2 = document.getElementById('gamepad_l2');
+                gamepad.l1 = document.getElementById('gamepad_l1');
+                gamepad.r2 = document.getElementById('gamepad_r2');
+                gamepad.r1 = document.getElementById('gamepad_r1');
+                gamepad.home = document.getElementById('gamepad_home');
+                gamepad.select = document.getElementById('gamepad_select');
+                gamepad.start = document.getElementById('gamepad_start');
+                gamepad.x = document.getElementById('gamepad_x');
+                gamepad.y = document.getElementById('gamepad_y');
+                gamepad.a = document.getElementById('gamepad_a');
+                gamepad.b = document.getElementById('gamepad_b');
+                gamepad.up = document.getElementById('gamepad_up');
+                gamepad.down = document.getElementById('gamepad_down');
+                gamepad.left = document.getElementById('gamepad_left');
+                gamepad.right = document.getElementById('gamepad_right');
+                gamepad.lstick = {};
+                gamepad.lstick.img = document.getElementById('gamepad_lstick');
+                gamepad.lstick.hw = 25;
+                gamepad.lstick.hh = 25;
+                gamepad.lstick.cx = gamepad.lstick.img.offsetLeft + gamepad.lstick.img.width / 2;
+                gamepad.lstick.cy = gamepad.lstick.img.offsetTop + gamepad.lstick.img.height / 2;
+                gamepad.rstick = {};
+                gamepad.rstick.img = document.getElementById('gamepad_rstick');
+                gamepad.rstick.hw = 17;
+                gamepad.rstick.hh = 17;
+                gamepad.rstick.cx = gamepad.rstick.img.offsetLeft + gamepad.rstick.img.width / 2;
+                gamepad.rstick.cy = gamepad.rstick.img.offsetTop + gamepad.rstick.img.height / 2;
+                setupGamepad(gamepad);
             })
         </script>
     </head>
@@ -614,8 +662,28 @@
         <img class='root' data-direction='left' style='width: 220px; left: 2px; top: 554px;' id='camera-view' src='/img/skin/small_border.png' />
 
         <div class='root' data-direction='right' style='left: 1058px; top: 390px;' id='gamepad-view'>
-            <!-- TODO Add gamepad -->
             <img class='child' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
+
+            <img class='child' style='width: 190px; left: 18px; top: 18px;' src='/img/gamepad/x360/released_buttons.png' />
+
+            <img id='gamepad_l2' class='child' style='width: 42px; height: 20px; left: 22px; top: 18px; visibility: hidden;' src='/img/gamepad/x360/pressed/l2.png'/>
+            <img id='gamepad_l1' class='child' style='width: 34px; height: 14px; left: 62px; top: 28px; visibility: hidden;' src='/img/gamepad/x360/pressed/l1.png'/>
+            <img id='gamepad_r2' class='child' style='width: 42px; height: 20px; left: 156px; top: 18px; visibility: hidden;' src='/img/gamepad/x360/pressed/r2.png'/>
+            <img id='gamepad_r1' class='child' style='width: 34px; height: 14px; left: 122px; top: 28px; visibility: hidden;' src='/img/gamepad/x360/pressed/r1.png'/>
+            <img id='gamepad_home' class='child' style='width: 26px; height: 26px; left: 96px; top: 46px; visibility: hidden;' src='/img/gamepad/x360/pressed/home.png'/>
+            <img id='gamepad_select' class='child' style='width: 24px; height: 14px; left: 74px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/select.png'/>
+            <img id='gamepad_start' class='child' style='width: 24px; height: 14px; left: 120px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/start.png'/>
+            <img id='gamepad_x' class='child' style='width: 26px; height: 26px; left: 146px; top: 66px; visibility: hidden;' src='/img/gamepad/x360/pressed/x.png'/>
+            <img id='gamepad_y' class='child' style='width: 26px; height: 26px; left: 168px; top: 44px; visibility: hidden;' src='/img/gamepad/x360/pressed/y.png'/>
+            <img id='gamepad_a' class='child' style='width: 26px; height: 26px; left: 160px; top: 92px; visibility: hidden;' src='/img/gamepad/x360/pressed/a.png'/>
+            <img id='gamepad_b' class='child' style='width: 26px; height: 26px; left: 182px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/b.png'/>
+            <img id='gamepad_up' class='child' style='width: 14px; height: 14px; left: 82px; top: 102px; visibility: hidden;' src='/img/gamepad/x360/pressed/up.png'/>
+            <img id='gamepad_down' class='child' style='width: 14px; height: 14px; left: 82px; top: 126px; visibility: hidden;' src='/img/gamepad/x360/pressed/down.png'/>
+            <img id='gamepad_left' class='child' style='width: 14px; height: 14px; left: 70px; top: 114px; visibility: hidden;' src='/img/gamepad/x360/pressed/left.png'/>
+            <img id='gamepad_right' class='child' style='width: 14px; height: 14px; left: 94px; top: 114px; visibility: hidden;' src='/img/gamepad/x360/pressed/right.png'/>
+
+            <img id='gamepad_lstick' class='child' style='width: 18px; height: 18px; left: 36px; top: 80px;' src='/img/gamepad/x360/stick.png'/>
+            <img id='gamepad_rstick' class='child' style='width: 18px; height: 18px; left: 126px; top: 112px;' src='/img/gamepad/x360/stick.png'/>
         </div>
 
         <label class='root m5x7 outlined centered' style='top: 420px;' id='round'> side / round </label>
