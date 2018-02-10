@@ -3,6 +3,42 @@ let _gamepadObjects = null;
 let _fps = 30;
 
 /**
+ * Makes all the required setup, considering the divs/images have the default
+ * names.
+ */
+function setupDefaultGamepad() {
+    let gamepad = {};
+    gamepad.l2 = document.getElementById('gamepad_l2');
+    gamepad.l1 = document.getElementById('gamepad_l1');
+    gamepad.r2 = document.getElementById('gamepad_r2');
+    gamepad.r1 = document.getElementById('gamepad_r1');
+    gamepad.home = document.getElementById('gamepad_home');
+    gamepad.select = document.getElementById('gamepad_select');
+    gamepad.start = document.getElementById('gamepad_start');
+    gamepad.x = document.getElementById('gamepad_x');
+    gamepad.y = document.getElementById('gamepad_y');
+    gamepad.a = document.getElementById('gamepad_a');
+    gamepad.b = document.getElementById('gamepad_b');
+    gamepad.up = document.getElementById('gamepad_up');
+    gamepad.down = document.getElementById('gamepad_down');
+    gamepad.left = document.getElementById('gamepad_left');
+    gamepad.right = document.getElementById('gamepad_right');
+    gamepad.lstick = {};
+    gamepad.lstick.img = document.getElementById('gamepad_lstick');
+    gamepad.lstick.hw = 25;
+    gamepad.lstick.hh = 25;
+    gamepad.lstick.cx = gamepad.lstick.img.offsetLeft + gamepad.lstick.img.width / 2;
+    gamepad.lstick.cy = gamepad.lstick.img.offsetTop + gamepad.lstick.img.height / 2;
+    gamepad.rstick = {};
+    gamepad.rstick.img = document.getElementById('gamepad_rstick');
+    gamepad.rstick.hw = 17;
+    gamepad.rstick.hh = 17;
+    gamepad.rstick.cx = gamepad.rstick.img.offsetLeft + gamepad.rstick.img.width / 2;
+    gamepad.rstick.cy = gamepad.rstick.img.offsetTop + gamepad.rstick.img.height / 2;
+    setupGamepad(gamepad);
+}
+
+/**
  * Stores the object with references for every gamepad button that may be
  * activated/moved.
  *
