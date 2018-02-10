@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> GFM's Gaming Arena </title>
+        <meta charset="utf-8" name="viewport" content="width=1280, height=720, initial-scale=1" />
+        <meta name="keywords" content="stream,skin" />
+        <meta name="description" content="GFM's streaming skin" />
+        <meta name="author" content="Gabriel Francisco Mandaji" />
+
+        <style>
+            @font-face {
+                /** m5x7 by Daniel Linssen. Get it from https://managore.itch.io/m5x7. */
+                font-family: "m5x7";
+                src: url(/res/m5x7.ttf) format("truetype");
+            }
+            html, body {
+                width: 1280px;
+                height: 720px;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background-color: #222034;
+                background-image: url('/img/bg.png');
+                color: #cbdbfc;
+                font-size: 1em;
+            }
+            img {
+                /** Basic nearest-neighbour behaviour.
+                 * Source: http://stackoverflow.com/questions/14068103/disable-antialising-when-scaling-images */
+                image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+                image-rendering: -moz-crisp-edges;          /* Firefox                        */
+                image-rendering: -o-crisp-edges;            /* Opera                          */
+                image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+                image-rendering: pixelated;                 /* Chrome */
+                image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+                -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+            }
+            .m5x7 {
+                font-family: "m5x7";
+                font-size: 48px;
+                display: block;
+                overflow: hidden;
+                word-break: break-all;
+            }
+            .centered {
+                text-align: center;
+            }
+            .outlined {
+                text-shadow: -1px -1px 0 #000,
+                              1px -1px 0 #000,
+                             -1px  1px 0 #000,
+                              1px  1px 0 #000;  
+            }
+            .fixedRoot {
+                /* Fixed position (unchanged by viewport size). Can be used as
+                 * parent for other elements */
+                position: fixed;
+            }
+            .fixedChild {
+                /* Fixed position (unchanged by viewport size), but contained
+                 * and relative to its closest parent. */
+                position: absolute;
+            }
+            .gameDiv {
+                outline: 2px solid #639bff;
+                background-color: #000000;
+                top: 8px;
+            }
+            .gameColorkey {
+                background-color: #ff00ff;
+            }
+        </style>
+
+        <script type="text/javascript" src="/script/gamepad.js"></script>
+        <script type="text/javascript" src="/script/utils.js"></script>
+        <script>
+            /**
+             * Bootstrap, after the page is loaded
+             */
+            document.addEventListener("DOMContentLoaded", function (event) {
+                let timer = document.getElementById("timer");
+
+                setupGetLabelLength("m5x7 outlined");
+
+                let timerLength = getLabelLength(timer.innerText);
+
+                let args = parseURL(window.location.href);
+
+                // Do something with these arguments
+                if (("gameWidth" in args) && ("gameHeight" in args)) {
+                    // Get the elements that shall be modified
+                    let gameView = document.getElementById("gameView");
+                    let gameColorkey = document.getElementById("gameColorkey");
+                    // Retrieve the dimensions of the game
+                    let width = parseInt(args.gameWidth);
+                    let height = parseInt(args.gameHeight);
+                    // Calculate the expected position
+                    let left = Math.floor((window.innerWidth - width*1.05) * 0.5);
+                    if (left < timerLength) {
+                        // Centralize the view considering (and possibly
+                        // partially hiding) the timer.
+                        left = Math.floor((window.innerWidth - timerLength - width*1.05) * 0.5);
+                        left += timerLength;
+                    }
+
+                    gameView.style.width = Math.floor(width*1.05)+"px";
+                    gameView.style.height = Math.floor(height*1.05)+"px";
+                    gameView.style.left = left+"px";
+
+                    gameColorkey.style.width = width+"px";
+                    gameColorkey.style.height = height+"px";
+                    gameColorkey.style.left = Math.floor(width*0.025)+"px";
+                    gameColorkey.style.top = Math.floor(height*0.025)+"px";
+
+                    // Centralize the timer on its side of the screen
+                    if (left > timerLength) {
+                        left = Math.floor((left - timerLength) * 0.5);
+                        timer.style.left = left+"px";
+                    }
+                    timer.style.top = Math.floor((height*1.05 - timer.offsetHeight) * 0.5)+"px";
+                }
+            })
+        </script>
+    </head>
+    <body>
+        <label id="timer" class="fixedRoot m5x7 outlined">0:00:00.000</label>
+
+        <div id="gameView" class="fixedRoot gameDiv" >
+            <div id="gameColorkey" class="fixedChild gameColorkey" ></div>
+        </div>
+    </body>
+</html>
