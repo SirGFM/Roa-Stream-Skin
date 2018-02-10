@@ -124,6 +124,38 @@
                     args.height = parseInt(parsedArgs.gameHeight);
                 }
 
+                if ("gameConsole" in parsedArgs) {
+                    switch (parsedArgs.gameConsole) {
+                        case "NES":
+                        case "nes": {
+                            args.width = 598;
+                            args.height = 470;
+                        } break;
+                        case "GB":
+                        case "GBC":
+                        case "gb":
+                        case "gbc": {
+                            args.width = 480;
+                            args.height = 432;
+                        } break;
+                        case "MD":
+                        case "MegaDrive":
+                        case "megadrive":
+                        case "md": {
+                            args.width = 640;
+                            args.height = 480;
+                        } break;
+                        case "GBA":
+                        case "gba": {
+                            args.width = 720;
+                            args.height = 480;
+                        } break;
+                        case "SNES":
+                        case "snes": {
+                        } break;
+                    }
+                }
+
                 if ("gameTitle" in parsedArgs) {
                     args.gameTitle = parsedArgs.gameTitle.replace(/%20/g, " ");
                 }
