@@ -89,6 +89,7 @@
 
         <script type="text/javascript" src="/script/gamepad.js"></script>
         <script type="text/javascript" src="/script/utils.js"></script>
+        <script type="text/javascript" src="/script/timer.js"></script>
         <script>
             const gameViewInc = 1.1;
             const timerDivWidthInc = 1.1;
@@ -214,6 +215,10 @@
                 // Place the gamepad (no matter whether visible or not) slightly bellow the timer
                 gamepad.style.left = Math.floor((gameView.offsetLeft - gamepad.children[0].offsetWidth) * 0.5)+"px";
                 gamepad.style.top = timer.offsetTop + timer.offsetHeight + 8 + "px";
+
+                // Configure the timer callback
+                setupTimer(timerLabel);
+                setGamepadCallback('home', timerCallback);
             }
         </script>
     </head>
@@ -222,7 +227,7 @@
             <div id="timerLine1" class="fixedChild line" style="left: 1px; top: 2px;"></div>
             <div id="timerLine2" class="fixedChild line" style="left: 1px; bottom: 2px;"></div>
         </div>
-        <label id="timer" class="fixedRoot m5x7 outlined centered">0:00:00.000</label>
+        <label id="timer" class="fixedRoot m5x7 outlined centered">00:00:00.000</label>
 
         <div id="gameView" class="fixedRoot darkBg gameDiv" ></div>
         <div id="gameColorkey" class="fixedRoot gameColorkey" ></div>
