@@ -52,6 +52,11 @@
                              -1px  1px 0 #000,
                               1px  1px 0 #000;  
             }
+            .gameInfo {
+                font-size: 24px;
+                bottom: 0;
+                right: 0;
+            }
             .fixedRoot {
                 /* Fixed position (unchanged by viewport size). Can be used as
                  * parent for other elements */
@@ -62,72 +67,130 @@
                  * and relative to its closest parent. */
                 position: absolute;
             }
+            .darkBg {
+                background-color: #000000;
+                opacity: 0.75;
+            }
             .gameDiv {
                 outline: 2px solid #639bff;
-                background-color: #000000;
                 top: 8px;
             }
             .gameColorkey {
                 background-color: #ff00ff;
+                opacity: 1;
+                outline: 4px solid #000000;
+            }
+            .line {
+                background-color: #639bff;
+                height: 2px;
+                width: auto;
             }
         </style>
 
         <script type="text/javascript" src="/script/gamepad.js"></script>
         <script type="text/javascript" src="/script/utils.js"></script>
         <script>
+            const gameViewInc = 1.1;
+            const timerDivWidthInc = 1.1;
+            const timerDivHeightInc = 1.05;
+            const outlineWidth = 0.2;
+
             /**
              * Bootstrap, after the page is loaded
              */
             document.addEventListener("DOMContentLoaded", function (event) {
-                let timer = document.getElementById("timer");
-
                 setupGetLabelLength("m5x7 outlined");
-
-                let timerLength = getLabelLength(timer.innerText);
-
-                let args = parseURL(window.location.href);
-
-                // Do something with these arguments
-                if (("gameWidth" in args) && ("gameHeight" in args)) {
-                    // Get the elements that shall be modified
-                    let gameView = document.getElementById("gameView");
-                    let gameColorkey = document.getElementById("gameColorkey");
-                    // Retrieve the dimensions of the game
-                    let width = parseInt(args.gameWidth);
-                    let height = parseInt(args.gameHeight);
-                    // Calculate the expected position
-                    let left = Math.floor((window.innerWidth - width*1.05) * 0.5);
-                    if (left < timerLength) {
-                        // Centralize the view considering (and possibly
-                        // partially hiding) the timer.
-                        left = Math.floor((window.innerWidth - timerLength - width*1.05) * 0.5);
-                        left += timerLength;
-                    }
-
-                    gameView.style.width = Math.floor(width*1.05)+"px";
-                    gameView.style.height = Math.floor(height*1.05)+"px";
-                    gameView.style.left = left+"px";
-
-                    gameColorkey.style.width = width+"px";
-                    gameColorkey.style.height = height+"px";
-                    gameColorkey.style.left = Math.floor(width*0.025)+"px";
-                    gameColorkey.style.top = Math.floor(height*0.025)+"px";
-
-                    // Centralize the timer on its side of the screen
-                    if (left > timerLength) {
-                        left = Math.floor((left - timerLength) * 0.5);
-                        timer.style.left = left+"px";
-                    }
-                    timer.style.top = Math.floor((height*1.05 - timer.offsetHeight) * 0.5)+"px";
-                }
+                window.setTimeout(bootstrap, 100)
             })
+
+            /**
+             * Bootstrap, after the page is loaded
+             */
+            function bootstrap() {
+                let args = null;
+                let width = 0;
+                let height = 0;
+                let timerLength = 0;
+                let left = 0;
+                let gameInfoTxt = "";
+                let timer = document.getElementById("timerDiv");
+                let timerLabel = document.getElementById("timer");
+                let line1 = document.getElementById("timerLine1");
+                let line2 = document.getElementById("timerLine2");
+                let gameView = document.getElementById("gameView");
+                let gameColorkey = document.getElementById("gameColorkey");
+                let gameInfo = document.getElementById("gameInfo");
+
+                // Get the timer (broken D:) "length" and the arguments
+                timerLength = getLabelLength(timerLabel.innerText);
+                args = parseURL(window.location.href);
+
+                // Retrieve the dimensions of the game
+                if ("gameWidth" in args) {
+                    width = parseInt(args.gameWidth);
+                }
+                if ("gameHeight" in args) {
+                    height = parseInt(args.gameHeight);
+                }
+
+                // Calculate the expected position
+                left = Math.floor((window.innerWidth - width*gameViewInc) * 0.5);
+                if (left < timerLength) {
+                    // Centralize the view considering (and possibly
+                    // partially hiding) the timer.
+                    left = Math.floor((window.innerWidth - timerLength - width*gameViewInc) * 0.5);
+                    left += timerLength;
+                }
+
+                // Make the outside box slightly bigger (5% bigger)
+                gameView.style.width = Math.floor(width*gameViewInc)+"px";
+                gameView.style.height = Math.floor(height*gameViewInc)+"px";
+                gameView.style.left = left+"px";
+
+                // Centralized, in viewport coordinates, the inner game view
+                gameColorkey.style.width = width+"px";
+                gameColorkey.style.height = height+"px";
+                gameColorkey.style.left = Math.floor(left + (gameView.offsetWidth-width)*0.5)+"px";
+                gameColorkey.style.top = Math.floor(gameView.offsetTop + (gameView.offsetHeight-height)*0.5)+"px";
+                gameColorkey.style.outlineWidth = Math.floor((gameView.offsetWidth-width)*0.5*outlineWidth)+"px";
+
+                // Centralize the timer on its side of the screen
+                timer.style.width = Math.floor(timerLength*timerDivWidthInc)+"px";
+                timer.style.height = Math.floor(timerLabel.offsetHeight*timerDivWidthInc)+"px";
+                if (left > timerLength) {
+                    left = Math.floor((left - timerLength) * 0.5);
+                    timer.style.left = left+"px";
+                }
+                timer.style.top = Math.floor((height*timerDivHeightInc - timer.offsetHeight) * 0.5)+"px";
+
+                // Center the label within its box
+                timerLabel.style.left = (timer.offsetLeft + Math.floor((timerLength*timerDivWidthInc - timerLabel.offsetWidth)*0.5))+"px";
+                timerLabel.style.top = Math.floor((height*timerDivHeightInc - timer.offsetHeight) * 0.5)+"px";
+
+                line1.style.width = (timer.offsetWidth - 2)+"px";
+                line2.style.width = (timer.offsetWidth - 2)+"px";
+
+                // Write the game info into the screen
+                gameInfoTxt = "&nbsp game position: {";
+                gameInfoTxt += " x: "+gameColorkey.offsetLeft;
+                gameInfoTxt += ", y: "+gameColorkey.offsetTop;
+                gameInfoTxt += ", w: "+gameColorkey.offsetWidth;
+                gameInfoTxt += ", h: "+gameColorkey.offsetHeight;
+                gameInfoTxt += " } &nbsp";
+                gameInfo.innerHTML = gameInfoTxt;
+            }
         </script>
     </head>
     <body>
-        <label id="timer" class="fixedRoot m5x7 outlined">0:00:00.000</label>
-
-        <div id="gameView" class="fixedRoot gameDiv" >
-            <div id="gameColorkey" class="fixedChild gameColorkey" ></div>
+        <div id="timerDiv" class="fixedRoot darkBg">
+            <div id="timerLine1" class="fixedChild line" style="left: 1px; top: 2px;"></div>
+            <div id="timerLine2" class="fixedChild line" style="left: 1px; bottom: 2px;"></div>
         </div>
+        <label id="timer" class="fixedRoot m5x7 outlined centered">0:00:00.000</label>
+
+        <div id="gameView" class="fixedRoot darkBg gameDiv" ></div>
+        <div id="gameColorkey" class="fixedRoot gameColorkey" ></div>
+
+        <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
     </body>
 </html>
