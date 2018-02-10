@@ -1,6 +1,7 @@
 let _interval = null;
 let _gamepadObjects = null;
 let _fps = 30;
+let _callbacks = {};
 
 /**
  * Makes all the required setup, considering the divs/images have the default
@@ -222,6 +223,12 @@ function pollGamepad() {
                     buttonPressed(_gp.buttons[i]) != button.visible) {
                 button.visible = buttonPressed(_gp.buttons[i]);
                 if (button.visible) {
+                    let cb = _callbacks[buttonName];
+
+                    if (cb) {
+                        cb[0](cb[1])
+                    }
+
                     button.img.style.visibility = 'visible';
                 }
                 else {
@@ -230,4 +237,18 @@ function pollGamepad() {
             }
         }
     }
+}
+
+/**
+ * Configure a callback when a give button just got pressed.
+ *
+ * NOTE: Each button can only have a single callback. Calling this more than
+ * once for the same button overwrites the previous callback.
+ *
+ * @param{buttonName} Name of the button that shall trigger the callback
+ * @param{func} Function to be called for the callback
+ * @param{args} Arguments to be passed to the function
+ */
+function setGamepadCallback(buttonName, func, args) {
+    _callbacks[buttonName] = [func, args]
 }
