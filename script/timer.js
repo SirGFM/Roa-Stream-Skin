@@ -1,5 +1,7 @@
 // Maximum time allowed between multi-presses
-const _multiPress = 150;
+//const _multiPress = 150;
+// Set a tighter time so l2 doesn't trigger this... D:
+const _multiPress = 100;
 // Amount of presses required for a multi-press
 const _multiPressRequired = 2;
 // Time when the last callback was called

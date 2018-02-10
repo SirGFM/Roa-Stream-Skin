@@ -291,7 +291,9 @@
 
                 // Configure the timer callback
                 setupTimer(document.getElementById("timer"));
-                setGamepadCallback('home', timerCallback);
+                // Well, home does not seems to work on Windows... D:
+                //setGamepadCallback('home', timerCallback);
+                setGamepadCallback('l2', timerCallback);
             }
         </script>
     </head>
