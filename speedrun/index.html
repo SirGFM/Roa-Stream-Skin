@@ -111,17 +111,23 @@
                 let width = 0;
                 let height = 0;
                 let timerLength = 0;
+                let titleLength = 0;
                 let left = 0;
                 let gameInfoTxt = "";
+                let gameTitle = "Game Title";
                 let timer = document.getElementById("timerDiv");
                 let timerLabel = document.getElementById("timer");
-                let line1 = document.getElementById("timerLine1");
-                let line2 = document.getElementById("timerLine2");
+                let timerLine1 = document.getElementById("timerLine1");
+                let timerLine2 = document.getElementById("timerLine2");
                 let gameView = document.getElementById("gameView");
                 let gameColorkey = document.getElementById("gameColorkey");
                 let gameInfo = document.getElementById("gameInfo");
+                let title = document.getElementById("titleDiv");
+                let titleLabel = document.getElementById("title");
+                let titleLine1 = document.getElementById("titleLine1");
+                let titleLine2 = document.getElementById("titleLine2");
 
-                // Get the timer (broken D:) "length" and the arguments
+                // Get the timer length and the arguments
                 timerLength = getLabelLength(timerLabel.innerText);
                 args = parseURL(window.location.href);
 
@@ -132,13 +138,16 @@
                 if ("gameHeight" in args) {
                     height = parseInt(args.gameHeight);
                 }
+                if ("gameTitle" in args) {
+                    gameTitle = args.gameTitle;
+                }
 
                 // Calculate the expected position
-                left = Math.floor((window.innerWidth - width*gameViewInc) * 0.5);
+                left = Math.floor((document.body.offsetWidth - width*gameViewInc) * 0.5);
                 if (left < timerLength) {
                     // Centralize the view considering (and possibly
                     // partially hiding) the timer.
-                    left = Math.floor((window.innerWidth - timerLength - width*gameViewInc) * 0.5);
+                    left = Math.floor((document.body.offsetWidth - timerLength - width*gameViewInc) * 0.5);
                     left += timerLength;
                 }
 
@@ -166,9 +175,8 @@
                 // Center the label within its box
                 timerLabel.style.left = (timer.offsetLeft + Math.floor((timerLength*timerDivWidthInc - timerLabel.offsetWidth)*0.5))+"px";
                 timerLabel.style.top = Math.floor((height*timerDivHeightInc - timer.offsetHeight) * 0.5)+"px";
-
-                line1.style.width = (timer.offsetWidth - 2)+"px";
-                line2.style.width = (timer.offsetWidth - 2)+"px";
+                timerLine1.style.width = (timer.offsetWidth - 2)+"px";
+                timerLine2.style.width = (timer.offsetWidth - 2)+"px";
 
                 // Write the game info into the screen
                 gameInfoTxt = "&nbsp game position: {";
@@ -178,6 +186,23 @@
                 gameInfoTxt += ", h: "+gameColorkey.offsetHeight;
                 gameInfoTxt += " } &nbsp";
                 gameInfo.innerHTML = gameInfoTxt;
+
+                // Set the game title and its position
+                gameTitle = gameTitle.replace(/%20/g, " ")
+                titleLength = getLabelLength(gameTitle);
+
+                titleLabel.innerText = gameTitle;
+
+                title.style.width = Math.floor(titleLength*timerDivWidthInc)+"px";
+                title.style.height = Math.floor(titleLabel.offsetHeight*timerDivWidthInc)+"px";
+                left = Math.floor((document.body.offsetWidth - titleLength) * 0.5);
+                title.style.left = left+"px";
+                title.style.top = ((gameView.offsetTop + gameView.offsetHeight)+Math.floor((document.body.offsetHeight - gameView.offsetTop - gameView.offsetHeight) * 0.25))+"px";
+
+                titleLabel.style.left = (title.offsetLeft + Math.floor((titleLength*timerDivWidthInc - titleLabel.offsetWidth)*0.5))+"px";
+                titleLabel.style.top = (title.offsetTop + Math.floor((title.offsetHeight - titleLabel.offsetHeight)  * 0.5))+"px";
+                titleLine1.style.width = (title.offsetWidth - 2)+"px";
+                titleLine2.style.width = (title.offsetWidth - 2)+"px";
             }
         </script>
     </head>
@@ -190,6 +215,12 @@
 
         <div id="gameView" class="fixedRoot darkBg gameDiv" ></div>
         <div id="gameColorkey" class="fixedRoot gameColorkey" ></div>
+
+        <div id="titleDiv" class="fixedRoot darkBg">
+            <div id="titleLine1" class="fixedChild line" style="left: 1px; top: 2px;"></div>
+            <div id="titleLine2" class="fixedChild line" style="left: 1px; bottom: 2px;"></div>
+        </div>
+        <label id="title" class="fixedRoot m5x7 outlined centered">Game title</label>
 
         <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
     </body>
