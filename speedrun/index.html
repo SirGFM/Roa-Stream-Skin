@@ -118,6 +118,7 @@
                 args.width = 0;
                 args.height = 0;
                 args.gameTitle = "Game Title";
+                args.timerButton = "l2";
 
                 // Parse the arguments
                 if ("gameWidth" in parsedArgs) {
@@ -174,6 +175,10 @@
                 }
                 else {
                     setupDefaultGamepad();
+                }
+
+                if ("timerButton" in parsedArgs) {
+                    args.timerButton = parsedArgs.timerButton;
                 }
 
                 return args
@@ -291,9 +296,7 @@
 
                 // Configure the timer callback
                 setupTimer(document.getElementById("timer"));
-                // Well, home does not seems to work on Windows... D:
-                //setGamepadCallback('home', timerCallback);
-                setGamepadCallback('l2', timerCallback);
+                setGamepadCallback(args.timerButton, timerCallback);
             }
         </script>
     </head>

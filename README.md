@@ -18,23 +18,25 @@ However, if you want to use the Rivals of Aether overlay, you'll need a WebSocke
 1. Add a source on the streaming application of page (i.e., connect to `http://<serving_ip>:<serving_port>/speedrun`)
 1. Add any of the following [arguments](https://en.wikipedia.org/wiki/Query_string), as desired:
     * `gameConsole`: Configures the view's dimensions to the console you'll be running. May be one of:
-        * "NES" or "nes":
+        * `NES` or `nes`:
             * width = 598; height = 470;
-        * "GB", "GBC", "gb" or "gbc":
+        * `GB`, `GBC`, `gb` or `gbc`:
             * width = 480; height = 432;
-        * "MegaDrive", "megadrive", "MD" or "md":
+        * "MegaDrive`, `megadrive`, `MD` or `md`:
             * width = 640; height = 480;
-            * Nope, I didn't configure it to accept "Sega Genesis" as the name...
-        * "GBA" or "gba":
+            * Nope, I didn't configure it to accept `Sega Genesis` as the name...
+        * `GBA` or `gba`:
             * width = 720; height = 480;
-        * "SNES" or "snes":
+        * `SNES` or `snes`:
             * width = 768; height = 672;
     * `gameWidth`: Manually configures the game's width
     * `gameHeight`: Manually configures the game's height
     * `gameTitle`: Configures the title of the game
     * `nogamepad`: Hides the gamepad view
+    * `timerButton`: Configures which gamepad button controls the timer (defaults to `L2`/`LT`)
 1. Set the game's source on the streaming application on the coordinates given at the bottom right corner of the page
 
+To start or stop the timer, press the timer button once. To reset it, press the button twice (in less than 100ms!!).
 
 ## "Quick start" for streaming RoA matches
 
