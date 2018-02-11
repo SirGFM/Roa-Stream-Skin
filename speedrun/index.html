@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> GFM's Gaming Arena </title>
+        <meta charset="utf-8" name="viewport" content="width=1280, height=720, initial-scale=1" />
+        <meta name="keywords" content="stream,skin" />
+        <meta name="description" content="GFM's streaming skin" />
+        <meta name="author" content="Gabriel Francisco Mandaji" />
+
+        <style>
+            @font-face {
+                /** m5x7 by Daniel Linssen. Get it from https://managore.itch.io/m5x7. */
+                font-family: "m5x7";
+                src: url(/res/m5x7.ttf) format("truetype");
+            }
+            html, body {
+                width: 1280px;
+                height: 720px;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background-color: #222034;
+                background-image: url('/img/bg.png');
+                color: #cbdbfc;
+                font-size: 1em;
+            }
+            img {
+                /** Basic nearest-neighbour behaviour.
+                 * Source: http://stackoverflow.com/questions/14068103/disable-antialising-when-scaling-images */
+                image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+                image-rendering: -moz-crisp-edges;          /* Firefox                        */
+                image-rendering: -o-crisp-edges;            /* Opera                          */
+                image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+                image-rendering: pixelated;                 /* Chrome */
+                image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+                -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+            }
+            .m5x7 {
+                font-family: "m5x7";
+                font-size: 48px;
+                display: block;
+                overflow: hidden;
+                word-break: break-all;
+            }
+            .centered {
+                text-align: center;
+            }
+            .outlined {
+                text-shadow: -1px -1px 0 #000,
+                              1px -1px 0 #000,
+                             -1px  1px 0 #000,
+                              1px  1px 0 #000;  
+            }
+            .gameInfo {
+                font-size: 24px;
+                bottom: 0;
+                right: 0;
+            }
+            .fixedRoot {
+                /* Fixed position (unchanged by viewport size). Can be used as
+                 * parent for other elements */
+                position: fixed;
+            }
+            .fixedChild {
+                /* Fixed position (unchanged by viewport size), but contained
+                 * and relative to its closest parent. */
+                position: absolute;
+            }
+            .darkBg {
+                background-color: #000000;
+                opacity: 0.75;
+            }
+            .gameDiv {
+                outline: 2px solid #639bff;
+                top: 8px;
+            }
+            .gameColorkey {
+                background-color: #000000;
+                /* The color bellow is useful for testing... */
+                /** background-color: #ff00ff; /**/
+                opacity: 1;
+                outline: 4px solid #000000;
+            }
+            .line {
+                background-color: #639bff;
+                height: 2px;
+                width: auto;
+            }
+        </style>
+
+        <script type="text/javascript" src="/script/gamepad.js"></script>
+        <script type="text/javascript" src="/script/utils.js"></script>
+        <script type="text/javascript" src="/script/timer.js"></script>
+        <script>
+            const _gameViewInc = 1.1;
+            const _timerDivWidthInc = 1.1;
+            const _timerDivHeightInc = 1.1;
+            const _outlineWidth = 0.2;
+            const _maxWidth = 719;
+            const _maxHeight = 580;
+
+            /**
+             * Bootstrap, after the page is loaded
+             */
+            document.addEventListener("DOMContentLoaded", function (event) {
+                setupGetLabelLength("m5x7 outlined");
+                window.setTimeout(bootstrap, 100)
+            })
+
+            /**
+             * Parse the arguments
+             */
+            function parseArgs() {
+                let args = {}
+                let parsedArgs = parseURL(window.location.href);
+
+                args.width = 0;
+                args.height = 0;
+                args.gameTitle = "Game Title";
+                args.timerButton = "l2";
+
+                // Parse the arguments
+                if ("gameWidth" in parsedArgs) {
+                    args.width = parseInt(parsedArgs.gameWidth);
+                }
+
+                if ("gameHeight" in parsedArgs) {
+                    args.height = parseInt(parsedArgs.gameHeight);
+                }
+
+                if ("gameConsole" in parsedArgs) {
+                    switch (parsedArgs.gameConsole) {
+                        case "NES":
+                        case "nes": {
+                            args.width = 598;
+                            args.height = 470;
+                        } break;
+                        case "GB":
+                        case "GBC":
+                        case "gb":
+                        case "gbc": {
+                            args.width = 480;
+                            args.height = 432;
+                        } break;
+                        case "MD":
+                        case "MegaDrive":
+                        case "megadrive":
+                        case "md": {
+                            args.width = 640;
+                            args.height = 480;
+                        } break;
+                        case "GBA":
+                        case "gba": {
+                            args.width = 720;
+                            args.height = 480;
+                        } break;
+                        case "SNES":
+                        case "snes": {
+                            args.width = 768;
+                            args.height = 672;
+                        } break;
+                    }
+                }
+
+                if ("gameTitle" in parsedArgs) {
+                    args.gameTitle = parsedArgs.gameTitle.replace(/%20/g, " ");
+                }
+
+                if ("nogamepad" in parsedArgs) {
+                    let gamepad = document.getElementById("gamepad-view");
+                    if (gamepad) {
+                        gamepad.style.visibility = "hidden";
+                    }
+                }
+                else {
+                    setupDefaultGamepad();
+                }
+
+                if ("timerButton" in parsedArgs) {
+                    args.timerButton = parsedArgs.timerButton;
+                }
+
+                return args
+            }
+
+            /**
+             * Bootstrap, after the page is loaded
+             */
+            function bootstrap() {
+                let args = parseArgs();
+
+                // Adjust the border multiplier if the game is too tall
+                let gameViewMulti = _gameViewInc;
+                if (args.height > _maxHeight) {
+                    gameViewMulti = 1.0 + (_gameViewInc - 1.0) * 0.5;
+                }
+
+
+                let newWidth = makeValueEven(Math.floor(args.width * gameViewMulti));
+                let newHeight = makeValueEven(Math.floor(args.height * gameViewMulti));
+                let gameViewLeft = 0;
+                let gameViewBottom = 0;
+                let val = 0;
+                let element = null;
+
+                // Centralize the game border
+                centerDomHorizontal("gameView", "", newWidth, true);
+                document.getElementById("gameView").style.height = newHeight+"px";
+                // Adjust the game window position if it's too large
+                if (args.width > _maxWidth) {
+                    document.getElementById("gameView").style.left = "unset";
+                    document.getElementById("gameView").style.right = "8px";
+                }
+
+                // Centralize the inner game view
+                centerDomHorizontal("gameColorkey", "gameView", args.width, true);
+                centerDomVertical("gameColorkey", "gameView", args.height, true);
+                // Set the inner view's outline to _outlineWidth% of the total area
+                val = (newWidth - args.width) * 0.5;
+                val = Math.floor(val * _outlineWidth);
+                document.getElementById("gameColorkey").style._outlineWidth = val+"px";
+
+                gameViewLeft = document.getElementById("gameView").offsetLeft;
+                gameViewBottom = document.getElementById("gameView").offsetTop;
+                gameViewBottom += document.getElementById("gameView").offsetHeight;
+
+                // Cetralize the timer
+                val = getLabelLength(document.getElementById("timer").innerText);
+                newWidth = makeValueEven(Math.floor(val * _timerDivWidthInc))
+                val = document.getElementById("timer").offsetHeight;
+                newHeight = makeValueEven(Math.floor(val * _timerDivHeightInc))
+                centerDomHorizontal("timerDiv", "", newWidth, true, gameViewLeft);
+                centerDomVertical("timerDiv", "", newHeight, true, gameViewBottom);
+
+                // Centralize the timer label
+                centerDomHorizontal("timer", "timerDiv", null, true);
+                centerDomVertical("timer", "timerDiv", null, true);
+
+                // Place the lines around the timer box
+                positionDivLine("timerLine1", "top", 2, -2)
+                positionDivLine("timerLine2", "bottom", 2, -2)
+
+                // Set and centralize the game title
+                document.getElementById("title").innerText = args.gameTitle;
+
+                val = getLabelLength(args.gameTitle);
+                newWidth = makeValueEven(Math.floor(val * _timerDivWidthInc))
+                val = document.getElementById("title").offsetHeight;
+                newHeight = makeValueEven(Math.floor(val * _timerDivHeightInc))
+
+                element = document.getElementById("titleDiv");
+                element.style.height = newHeight+"px";
+
+                if (args.height > _maxHeight) {
+                    // Place it on the left side of the screen
+                    centerDomHorizontal("titleDiv", "timerDiv", newWidth, true);
+
+                    // Place it above the timer
+                    centerDomVertical("titleDiv", "timerDiv", null, true);
+                    val = element.offsetTop - newHeight - 8;
+                    element.style.top = val+"px";
+                }
+                else {
+                    // Place it on its default position
+                    centerDomHorizontal("titleDiv", "", newWidth, true);
+
+                    // Place the game's title in the upper quarter of the bottom of the screen
+                    val = (document.body.offsetHeight - gameViewBottom) * 0.25;
+                    val = makeValueEven(gameViewBottom + val);
+                    element.style.top = val+"px";
+                }
+
+                // Centralize the title label
+                centerDomHorizontal("title", "titleDiv", null, true);
+                centerDomVertical("title", "titleDiv", null, true);
+
+                // Place the lines around the timer box
+                positionDivLine("titleLine1", "top", 2, -2)
+                positionDivLine("titleLine2", "bottom", 2, -2)
+
+                // Place the gamepad (no matter whether visible or not) slightly bellow the timer
+                element = document.getElementById("gamepad-view");
+                val = element.children[0].offsetWidth;
+                centerDomHorizontal("gamepad-view", "", val, true, gameViewLeft);
+                setDomPositionBellow("gamepad-view", "timerDiv", 8, true);
+
+                // Write the game info into the screen
+                val = "&nbsp game position: {";
+                val += " x: "+gameColorkey.offsetLeft;
+                val += ", y: "+gameColorkey.offsetTop;
+                val += ", w: "+gameColorkey.offsetWidth;
+                val += ", h: "+gameColorkey.offsetHeight;
+                val += " } &nbsp";
+                document.getElementById("gameInfo").innerHTML = val;
+
+                // Configure the timer callback
+                setupTimer(document.getElementById("timer"));
+                setGamepadCallback(args.timerButton, timerCallback);
+            }
+        </script>
+    </head>
+    <body>
+        <div class='fixedRoot' id='gamepad-view'>
+            <img class='fixedChild' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
+
+            <img class='fixedChild' style='width: 190px; left: 18px; top: 18px;' src='/img/gamepad/x360/released_buttons.png' />
+
+            <img id='gamepad_l2' class='fixedChild' style='width: 42px; height: 20px; left: 22px; top: 18px; visibility: hidden;' src='/img/gamepad/x360/pressed/l2.png'/>
+            <img id='gamepad_l1' class='fixedChild' style='width: 34px; height: 14px; left: 62px; top: 28px; visibility: hidden;' src='/img/gamepad/x360/pressed/l1.png'/>
+            <img id='gamepad_r2' class='fixedChild' style='width: 42px; height: 20px; left: 156px; top: 18px; visibility: hidden;' src='/img/gamepad/x360/pressed/r2.png'/>
+            <img id='gamepad_r1' class='fixedChild' style='width: 34px; height: 14px; left: 122px; top: 28px; visibility: hidden;' src='/img/gamepad/x360/pressed/r1.png'/>
+            <img id='gamepad_home' class='fixedChild' style='width: 26px; height: 26px; left: 96px; top: 46px; visibility: hidden;' src='/img/gamepad/x360/pressed/home.png'/>
+            <img id='gamepad_select' class='fixedChild' style='width: 24px; height: 14px; left: 74px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/select.png'/>
+            <img id='gamepad_start' class='fixedChild' style='width: 24px; height: 14px; left: 120px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/start.png'/>
+            <img id='gamepad_x' class='fixedChild' style='width: 26px; height: 26px; left: 146px; top: 66px; visibility: hidden;' src='/img/gamepad/x360/pressed/x.png'/>
+            <img id='gamepad_y' class='fixedChild' style='width: 26px; height: 26px; left: 168px; top: 44px; visibility: hidden;' src='/img/gamepad/x360/pressed/y.png'/>
+            <img id='gamepad_a' class='fixedChild' style='width: 26px; height: 26px; left: 160px; top: 92px; visibility: hidden;' src='/img/gamepad/x360/pressed/a.png'/>
+            <img id='gamepad_b' class='fixedChild' style='width: 26px; height: 26px; left: 182px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/b.png'/>
+            <img id='gamepad_up' class='fixedChild' style='width: 14px; height: 14px; left: 82px; top: 102px; visibility: hidden;' src='/img/gamepad/x360/pressed/up.png'/>
+            <img id='gamepad_down' class='fixedChild' style='width: 14px; height: 14px; left: 82px; top: 126px; visibility: hidden;' src='/img/gamepad/x360/pressed/down.png'/>
+            <img id='gamepad_left' class='fixedChild' style='width: 14px; height: 14px; left: 70px; top: 114px; visibility: hidden;' src='/img/gamepad/x360/pressed/left.png'/>
+            <img id='gamepad_right' class='fixedChild' style='width: 14px; height: 14px; left: 94px; top: 114px; visibility: hidden;' src='/img/gamepad/x360/pressed/right.png'/>
+
+            <img id='gamepad_lstick' class='fixedChild' style='width: 18px; height: 18px; left: 36px; top: 80px;' src='/img/gamepad/x360/stick.png'/>
+            <img id='gamepad_rstick' class='fixedChild' style='width: 18px; height: 18px; left: 126px; top: 112px;' src='/img/gamepad/x360/stick.png'/>
+        </div>
+
+        <div id="timerDiv" class="fixedRoot darkBg">
+            <div id="timerLine1" class="fixedChild line"></div>
+            <div id="timerLine2" class="fixedChild line"></div>
+        </div>
+        <label id="timer" class="fixedRoot m5x7 outlined centered">00:00:00.000</label>
+
+        <div id="gameView" class="fixedRoot darkBg gameDiv" ></div>
+        <div id="gameColorkey" class="fixedRoot gameColorkey" ></div>
+
+        <div id="titleDiv" class="fixedRoot darkBg">
+            <div id="titleLine1" class="fixedChild line"></div>
+            <div id="titleLine2" class="fixedChild line"></div>
+        </div>
+        <label id="title" class="fixedRoot m5x7 outlined centered">Game title</label>
+
+        <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
+    </body>
+</html>
