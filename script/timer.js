@@ -17,8 +17,10 @@ const _updateDelay = 1000 / 30;
 let _timerLabel = null;
 // Accumulated time in ms
 let _accumulatedTime = 0;
-// Accumulated time in ms
-let _lastAccumulatedTime = 0;
+// Accumulated time when the timer was last started
+let _prevAccumulatedTime = 0;
+// Last time at which the timer was started
+let _lastStartTime = 0;
 // Worker that updates the timer, if any
 let _timerRunner = null;
 
@@ -58,6 +60,7 @@ function handleTimerCallback() {
         // Reset the time and pauses it
         toggleTimer(true);
         _accumulatedTime = 0;
+        _prevAccumulatedTime = 0;
         setTimerText();
     }
     else {
@@ -80,7 +83,8 @@ function toggleTimer(forceHalt) {
     }
     else if (_timerRunner == null) {
         _timerRunner = window.setInterval(updateTimer, _updateDelay);
-        _lastAccumulatedTime = Date.now();
+        _prevAccumulatedTime = _accumulatedTime;
+        _lastStartTime = Date.now();
     }
 }
 
@@ -90,11 +94,8 @@ function toggleTimer(forceHalt) {
 function updateTimer() {
     let now = Date.now();
 
-    _accumulatedTime += now - _lastAccumulatedTime;
-
+    _accumulatedTime = _prevAccumulatedTime + (now - _lastStartTime);
     setTimerText();
-
-    _lastAccumulatedTime = now;
 }
 
 /**
