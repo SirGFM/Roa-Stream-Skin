@@ -1,5 +1,5 @@
 // Maximum time allowed between multi-presses
-const _multiPress = 200;
+const _multiPress = 300;
 // Amount of presses required for a multi-press
 const _resetTimerCount = 3;
 // How long a button must be held to be considered a press
