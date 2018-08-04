@@ -219,28 +219,32 @@ function pollGamepad() {
             let button = _gamepadObjects[buttonName];
             let i = button.button;
 
-            if (i < _gp.buttons.length &&
-                    buttonPressed(_gp.buttons[i]) != button.visible) {
-                button.visible = buttonPressed(_gp.buttons[i]);
-                if (button.visible) {
-                    let cb = _callbacks[buttonName];
+            if (i >= _gp.buttons.length) {
+                continue;
+            }
 
-                    if (cb) {
-                        cb[0](cb[1])
-                    }
-
+            let state = buttonPressed(_gp.buttons[i]);
+            if (state != button.visible) {
+                button.visible = state;
+                if (state) {
                     button.img.style.visibility = 'visible';
                 }
                 else {
                     button.img.style.visibility = 'hidden';
                 }
             }
+
+            let cb = _callbacks[buttonName];
+            if (cb) {
+                cb[0](state, cb[1])
+            }
         }
     }
 }
 
 /**
- * Configure a callback when a give button just got pressed.
+ * Configure a callback when a give button just got pressed. The callback must
+ * receive the button state and may optionally receive a user defined argument.
  *
  * NOTE: Each button can only have a single callback. Calling this more than
  * once for the same button overwrites the previous callback.
