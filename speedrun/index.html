@@ -188,6 +188,9 @@
              * Bootstrap, after the page is loaded
              */
             function bootstrap() {
+                let _input = document.getElementById("configInput");
+                _input.addEventListener('change', loadJsonFile);
+
                 let args = parseArgs();
 
                 // Adjust the border multiplier if the game is too tall
@@ -298,9 +301,52 @@
                 setupTimer(document.getElementById("timer"));
                 setGamepadCallback(args.timerButton, timerCallback);
             }
+
+            /**
+             * Called from 'loadConfigButton', simply clicks on 'configInput' to
+             * get a file selector UI.
+             */
+            function setupLoadFile() {
+                document.getElementById("configInput").click();
+            }
+
+            /**
+             * Loads a JSON file as the page's configuration. Called as
+             * 'configInput's handler.
+             */
+            function loadJsonFile() {
+                if (this.files.length <= 0) {
+                    alert("No file selected!");
+                    return;
+                }
+
+                let _file = this.files[0];
+                if (_file.type != "application/json") {
+                    alert("Invalid file type! Expected a JSON file.");
+                    return;
+                }
+
+                let _reader = new FileReader();
+                _reader.onload = function (e) { setupScreen(JSON.parse(e.target.result)); };
+                _reader.readAsText(_file);
+            }
+
+            /**
+             * Configures the screen.
+             *
+             * @param{config} A 'config' object.
+             */
+            function setupScreen(config) {
+                console.log("Configuring screen using data:");
+                console.log(config);
+                /* TODO */
+            }
         </script>
     </head>
     <body>
+        <button id="loadConfigButton" class='fixedRoot' type="button" onclick="setupLoadFile()"> Load config </button>
+        <input id="configInput" type="file" name="name" style="display: none;" />
+
         <div class='fixedRoot' id='gamepad-view'>
             <img class='fixedChild' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
 
