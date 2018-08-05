@@ -320,8 +320,10 @@
                     return;
                 }
 
+                /* NOTE: OBS on Windows does not report JSON files with the
+                 * proper MIME type. */
                 let _file = this.files[0];
-                if (_file.type != "application/json") {
+                if (_file.type != "" && _file.type != "application/json") {
                     alert("Invalid file type! Expected a JSON file.");
                     return;
                 }
