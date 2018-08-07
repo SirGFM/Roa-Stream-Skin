@@ -92,13 +92,22 @@
         <script type="text/javascript" src="/script/gamepad.js"></script>
         <script type="text/javascript" src="/script/utils.js"></script>
         <script type="text/javascript" src="/script/timer.js"></script>
+        <script type="text/javascript" src="/script/display.js"></script>
         <script>
-            const _gameViewInc = 1.1;
+            //const _leftViewWidth = 240;
+            //const _rightViewWidth = 1040;
+            // 16:9 res x 64
+            //const _maxGameWidth = 1024;
+            //const _maxGameHeight = 576;
+            /* By how much the game should increase in either direction */
+            //const _gameViewInc = 1.1;
+
+            //const _gameViewInc = 1.1;
             const _timerDivWidthInc = 1.1;
             const _timerDivHeightInc = 1.1;
             const _outlineWidth = 0.2;
-            const _maxWidth = 719;
-            const _maxHeight = 580;
+            //const _maxWidth = 719;
+            //const _maxHeight = 580;
 
             /**
              * Bootstrap, after the page is loaded
@@ -115,58 +124,43 @@
                 let args = {}
                 let parsedArgs = parseURL(window.location.href);
 
-                args.width = 0;
-                args.height = 0;
-                args.gameTitle = "Game Title";
-                args.timerButton = "l2";
-
-                // Parse the arguments
-                if ("gameWidth" in parsedArgs) {
-                    args.width = parseInt(parsedArgs.gameWidth);
-                }
-
-                if ("gameHeight" in parsedArgs) {
-                    args.height = parseInt(parsedArgs.gameHeight);
-                }
-
                 if ("gameConsole" in parsedArgs) {
-                    switch (parsedArgs.gameConsole) {
-                        case "NES":
-                        case "nes": {
-                            args.width = 598;
-                            args.height = 470;
-                        } break;
-                        case "GB":
-                        case "GBC":
-                        case "gb":
-                        case "gbc": {
-                            args.width = 480;
-                            args.height = 432;
-                        } break;
-                        case "MD":
-                        case "MegaDrive":
-                        case "megadrive":
-                        case "md": {
-                            args.width = 640;
-                            args.height = 480;
-                        } break;
-                        case "GBA":
-                        case "gba": {
-                            args.width = 720;
-                            args.height = 480;
-                        } break;
-                        case "SNES":
-                        case "snes": {
-                            args.width = 768;
-                            args.height = 672;
-                        } break;
+                    args.display = {
+                        type: "console",
+                        mode: parsedArgs.gameConsole
+                    };
+                }
+                else {
+                    let w = 0, h = 0;
+
+                    if ("gameWidth" in parsedArgs) {
+                        w = parseInt(parsedArgs.gameWidth);
                     }
+                    if ("gameHeight" in parsedArgs) {
+                        h = parseInt(parsedArgs.gameHeight);
+                    }
+
+                    args.display = {
+                        type: "custom",
+                        width: w,
+                        height: h,
+                    };
                 }
 
                 if ("gameTitle" in parsedArgs) {
-                    args.gameTitle = parsedArgs.gameTitle.replace(/%20/g, " ");
+                    args.title = parsedArgs.gameTitle.replace(/%20/g, " ");
+                }
+                else {
+                    args.title = "Game Title";
                 }
 
+                /* TODO */
+                args.timerButton = "l2";
+
+                return args;
+            }
+
+            function dotherDummy() {
                 if ("nogamepad" in parsedArgs) {
                     let gamepad = document.getElementById("gamepad-view");
                     if (gamepad) {
@@ -188,11 +182,18 @@
              * Bootstrap, after the page is loaded
              */
             function bootstrap() {
+                /* Setup the hook so pressing the button will load a file */
                 let _input = document.getElementById("configInput");
-                _input.addEventListener('change', loadJsonFile);
+                _input.addEventListener("change", loadJsonFile);
 
-                let args = parseArgs();
+                /* Set the timer's label */
+                setupTimer(document.getElementById("timer"));
 
+                /* Initial setup from query string */
+                setupScreen(parseArgs());
+            }
+
+            function dummy() {
                 // Adjust the border multiplier if the game is too tall
                 let gameViewMulti = _gameViewInc;
                 if (args.height > _maxHeight) {
@@ -336,12 +337,14 @@
             /**
              * Configures the screen.
              *
-             * @param{config} A 'config' object.
+             * @param{config} A 'config' object. Look at docs/config.md for more info.
              */
             function setupScreen(config) {
-                console.log("Configuring screen using data:");
-                console.log(config);
-                /* TODO */
+                try {
+                    configureDisplay(config.display);
+                } catch (e) {
+                    alert(e);
+                }
             }
         </script>
     </head>

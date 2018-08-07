@@ -23,7 +23,7 @@ let _gameViewInc = 1.1;
  * @param{name} A string with the console's name (or initials).
  * @return{Array} The dimensions for the consoles, as [width, height].
  */
-let getConsoleDimension(name) {
+let getConsoleDimension = function(name) {
     switch (name.toLowerCase()) {
     case "nes":
         return [598, 470];
@@ -46,7 +46,7 @@ let getConsoleDimension(name) {
  * Convert the value into a valid dimension.
  *
  * @param{value} The tentative dimension.
- * @reutnr{Int} The calculated dimension.
+ * @return{Int} The calculated dimension.
  */
 let getValidDimension = function(value) {
     /* Why must it be even? */
@@ -70,9 +70,9 @@ let checkDimension = function(value, max) {
  *
  * @param{value} The tentative dimension.
  * @param{max} The maximum value for that dimension.
- * @reutnr{Int} The calculated dimension.
+ * @return{Int} The calculated dimension.
  */
-let cropDimension(value, max) {
+let cropDimension = function(value, max) {
     if (!checkDimension(value, max)) {
         return getValidDimension(max / _gameViewInc);
     }
@@ -96,7 +96,7 @@ let cropDimension(value, max) {
  * @param{display} A 'display' object. Look at docs/config.md for more info.
  * @return An object as described above
  */
-function getDimensions(display) {
+let getDimensions = function(display) {
     let w = 0, h = 0;
 
     /* Reset the increase */
@@ -138,7 +138,7 @@ function getDimensions(display) {
     /* Center within the window, unless it would overlap the left area */
     ret.border.width = getValidDimension(w * _gameViewInc);
     ret.border.height = getValidDimension(h * _gameViewInc);
-    ret.border.x = (windowWidth - ret.border.w) * 0.5;
+    ret.border.x = (windowWidth - ret.border.width) * 0.5;
     ret.border.y = _defViewTop;
 
     if (ret.border.height >= _maxHeight) {
@@ -153,10 +153,39 @@ function getDimensions(display) {
     /* Center (globally) the game within the view */
     ret.game.width = w;
     ret.game.height = h;
-    ret.game.x = ret.border.x + (_ret.border.width - ret.game.width) * 0.5;
+    ret.game.x = ret.border.x + (ret.border.width - ret.game.width) * 0.5;
     ret.game.x = getValidDimension(ret.game.x);
-    ret.game.y = ret.border.y + (_ret.border.height - ret.game.height) * 0.5;
+    ret.game.y = ret.border.y + (ret.border.height - ret.game.height) * 0.5;
     ret.game.y = getValidDimension(ret.game.y);
 
     return ret;
+}
+
+/**
+ * Configures 'gameView', the border, and 'gameColorKey', the actual game area,
+ * based on a display object.
+ *
+ * @param{display} A 'display' object. Look at docs/config.md for more info.
+ * @return An object as described above
+ */
+function configureDisplay(argsDisplay) {
+    let display = getDimensions(argsDisplay);
+
+    let view = document.getElementById("gameView");
+    let game = document.getElementById("gameColorkey");
+
+    view.style.width = display.border.width + "px";
+    view.style.height = display.border.height + "px";
+    view.style.left = display.border.x + "px";
+    view.style.top = display.border.y + "px";
+
+    /* Calculate and set the border's outline */
+    let val = (display.border.width - display.game.width) * 0.5;
+    val = Math.floor(val * _outlineWidth);
+    view.style._outlineWidth = val + "px";
+
+    game.style.width = display.game.width + "px";
+    game.style.height = display.game.height + "px";
+    game.style.left = display.game.x + "px";
+    game.style.top = display.game.y + "px";
 }
