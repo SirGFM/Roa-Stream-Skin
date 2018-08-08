@@ -95,7 +95,9 @@
         <script type="text/javascript" src="/script/display.js"></script>
         <script>
             /* How much bigger the title's border should be */
-            const _titleInc = 1.1;
+            const _borderInc = 1.1;
+            /* Whether the vertical position of the label should be set at a later time */
+            let _setLabelLate = false;
 
             //const _leftViewWidth = 240;
             //const _rightViewWidth = 1040;
@@ -189,8 +191,7 @@
                 let _input = document.getElementById("configInput");
                 _input.addEventListener("change", loadJsonFile);
 
-                /* Set the timer's label */
-                setupTimer(document.getElementById("timer"));
+                initialTimerSetup();
 
                 /* Initial setup from query string */
                 setupScreen(parseArgs());
@@ -232,21 +233,8 @@
                 gameViewBottom = document.getElementById("gameView").offsetTop;
                 gameViewBottom += document.getElementById("gameView").offsetHeight;
 
-                // Cetralize the timer
-                val = getLabelLength(document.getElementById("timer").innerText);
-                newWidth = makeValueEven(Math.floor(val * _timerDivWidthInc))
-                val = document.getElementById("timer").offsetHeight;
-                newHeight = makeValueEven(Math.floor(val * _timerDivHeightInc))
-                centerDomHorizontal("timerDiv", "", newWidth, true, gameViewLeft);
-                centerDomVertical("timerDiv", "", newHeight, true, gameViewBottom);
 
-                // Centralize the timer label
-                centerDomHorizontal("timer", "timerDiv", null, true);
-                centerDomVertical("timer", "timerDiv", null, true);
 
-                // Place the lines around the timer box
-                positionDivLine("timerLine1", "top", 2, -2)
-                positionDivLine("timerLine2", "bottom", 2, -2)
 
                 // Set and centralize the game title
                 document.getElementById("title").innerText = args.gameTitle;
@@ -317,10 +305,14 @@
                 let h = 0, w = 0, x = 0, y = 0;
 
                 el.innerText = title;
-                w = getValidDimension(getLabelLength(title) * _titleInc);
-                h = getValidDimension(el.offsetHeight * _titleInc);
+                w = getValidDimension(getLabelLength(title) * _borderInc);
+                h = getValidDimension(el.offsetHeight * _borderInc);
 
                 if (h >= getUnderView()) {
+                    /* Place it on the left side of the screen */
+                    x = getValidDimension((getLeftView() - w) * 0.5);
+                    /* Vertical position will be set later */
+                    _setLabelLate = true;
                 }
                 else {
                     let view = document.getElementById("gameView");
@@ -339,12 +331,13 @@
                 border.style.width = w + "px";
                 border.style.height = h + "px";
 
-                centerDomHorizontal("title", "titleDiv", null, true);
-                centerDomVertical("title", "titleDiv", null, true);
-
                 /* Adorn the title with lines */
                 positionDivLine("titleLine1", "top", 2, -2)
                 positionDivLine("titleLine2", "bottom", 2, -2)
+
+                /* TODO Move these 2 statements to the later function that centers the left side */
+                centerDomHorizontal("title", "titleDiv", null, true);
+                centerDomVertical("title", "titleDiv", null, true);
             }
 
             /**
@@ -378,6 +371,37 @@
                 _reader.readAsText(_file);
             }
 
+            function initialTimerSetup() {
+                let w = 0, h = 0;
+
+                /* Set the timer's label */
+                setupTimer(document.getElementById("timer"));
+
+                /* Properly configure the timer border */
+                let timer = document.getElementById("timer");
+
+                w = getLabelLength(timer.innerText);
+                w = getValidDimension(w * _borderInc);
+                h = timer.offsetHeight;
+                h = getValidDimension(h * _borderInc);
+
+                let border = document.getElementById("timerDiv");
+                border.style.width = w + "px";
+                border.style.height = h + "px";
+
+                /* Adorn the timer border with lines */
+                positionDivLine("timerLine1", "top", 2, -2)
+                positionDivLine("timerLine2", "bottom", 2, -2)
+
+                /* TODO Center the timer div afterwards */
+                centerDomHorizontal("timerDiv", "", w, true, 240);
+                centerDomVertical("timerDiv", "", h, true, 720);
+
+                /* TODO Move these 2 statements to the later function that centers the left side */
+                centerDomHorizontal("timer", "timerDiv", null, true);
+                centerDomVertical("timer", "timerDiv", null, true);
+            }
+
             /**
              * Configures the screen.
              *
@@ -385,8 +409,10 @@
              */
             function setupScreen(config) {
                 try {
+                    _setLabelLate = false;
                     configureDisplay(config.display);
                     setTitle(config.title);
+                    /* TODO Center the left side of the screen */
                 } catch (e) {
                     alert(e);
                     /* Throwing makes the exception appear on the console */

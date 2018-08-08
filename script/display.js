@@ -198,3 +198,13 @@ function getUnderView() {
     let val = windowHeight - _display.border.y - _display.border.height;
     return getValidDimension(val);
 }
+
+/**
+ * Calculate the actual width of the left side of the screen.
+ */
+function getLeftView() {
+    if (_display.border.x * 0.9 > _leftViewWidth) {
+        return _display.border.x * 0.9;
+    }
+    return _leftViewWidth;
+}
