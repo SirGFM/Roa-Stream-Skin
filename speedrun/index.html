@@ -94,6 +94,9 @@
         <script type="text/javascript" src="/script/timer.js"></script>
         <script type="text/javascript" src="/script/display.js"></script>
         <script>
+            /* How much bigger the title's border should be */
+            const _titleInc = 1.1;
+
             //const _leftViewWidth = 240;
             //const _rightViewWidth = 1040;
             // 16:9 res x 64
@@ -304,6 +307,47 @@
             }
 
             /**
+             * Set the title and configure its border.
+             *
+             * @param{title} The game's title
+             */
+            function setTitle(title) {
+                let el = document.getElementById("title");
+                let border = document.getElementById("titleDiv");
+                let h = 0, w = 0, x = 0, y = 0;
+
+                el.innerText = title;
+                w = getValidDimension(getLabelLength(title) * _titleInc);
+                h = getValidDimension(el.offsetHeight * _titleInc);
+
+                if (h >= getUnderView()) {
+                }
+                else {
+                    let view = document.getElementById("gameView");
+
+                    /* Center it bellow the game view */
+                    x = getValidDimension((view.offsetWidth - w) * 0.5);
+                    x += view.offsetLeft;
+
+                    /* Place it in the upper quarter of the bottom of the screen */
+                    y = view.offsetTop + view.offsetHeight;
+                    y = getValidDimension(y + getUnderView() * 0.25);
+                }
+
+                border.style.top = y + "px";
+                border.style.left = x + "px";
+                border.style.width = w + "px";
+                border.style.height = h + "px";
+
+                centerDomHorizontal("title", "titleDiv", null, true);
+                centerDomVertical("title", "titleDiv", null, true);
+
+                /* Adorn the title with lines */
+                positionDivLine("titleLine1", "top", 2, -2)
+                positionDivLine("titleLine2", "bottom", 2, -2)
+            }
+
+            /**
              * Called from 'loadConfigButton', simply clicks on 'configInput' to
              * get a file selector UI.
              */
@@ -342,8 +386,11 @@
             function setupScreen(config) {
                 try {
                     configureDisplay(config.display);
+                    setTitle(config.title);
                 } catch (e) {
                     alert(e);
+                    /* Throwing makes the exception appear on the console */
+                    throw e;
                 }
             }
         </script>

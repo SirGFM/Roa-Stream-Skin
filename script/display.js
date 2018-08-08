@@ -17,6 +17,9 @@ const _maxHeight = 576;
 /* By how much the game should increase in either direction. Starts as 10% */
 let _gameViewInc = 1.1;
 
+/* Display loaded from the config file */
+let _display;
+
 /**
  * Retrieves a console's dimensions from its name.
  *
@@ -48,10 +51,8 @@ let getConsoleDimension = function(name) {
  * @param{value} The tentative dimension.
  * @return{Int} The calculated dimension.
  */
-let getValidDimension = function(value) {
-    /* Why must it be even? */
-    //return makeValueEven(Math.floor(value));
-    return Math.floor(value);
+function getValidDimension(value) {
+    return makeValueEven(Math.floor(value));
 }
 
 /**
@@ -169,23 +170,31 @@ let getDimensions = function(display) {
  * @return An object as described above
  */
 function configureDisplay(argsDisplay) {
-    let display = getDimensions(argsDisplay);
-
     let view = document.getElementById("gameView");
     let game = document.getElementById("gameColorkey");
 
-    view.style.width = display.border.width + "px";
-    view.style.height = display.border.height + "px";
-    view.style.left = display.border.x + "px";
-    view.style.top = display.border.y + "px";
+    _display = getDimensions(argsDisplay);
+
+    view.style.width = _display.border.width + "px";
+    view.style.height = _display.border.height + "px";
+    view.style.left = _display.border.x + "px";
+    view.style.top = _display.border.y + "px";
 
     /* Calculate and set the border's outline */
-    let val = (display.border.width - display.game.width) * 0.5;
+    let val = (_display.border.width - _display.game.width) * 0.5;
     val = Math.floor(val * _outlineWidth);
     view.style._outlineWidth = val + "px";
 
-    game.style.width = display.game.width + "px";
-    game.style.height = display.game.height + "px";
-    game.style.left = display.game.x + "px";
-    game.style.top = display.game.y + "px";
+    game.style.width = _display.game.width + "px";
+    game.style.height = _display.game.height + "px";
+    game.style.left = _display.game.x + "px";
+    game.style.top = _display.game.y + "px";
+}
+
+/**
+ * Calculate how many pixels are left under the border (e.g., for the title).
+ */
+function getUnderView() {
+    let val = windowHeight - _display.border.y - _display.border.height;
+    return getValidDimension(val);
 }
