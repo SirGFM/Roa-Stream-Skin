@@ -55,7 +55,7 @@
             .gameInfo {
                 font-size: 24px;
                 bottom: 0;
-                right: 0;
+                left: 0;
             }
             .fixedRoot {
                 /* Fixed position (unchanged by viewport size). Can be used as
@@ -159,28 +159,29 @@
                     args.title = "Game Title";
                 }
 
-                /* TODO */
-                args.timerButton = "l2";
-
-                return args;
-            }
-
-            function dotherDummy() {
-                if ("nogamepad" in parsedArgs) {
-                    let gamepad = document.getElementById("gamepad-view");
-                    if (gamepad) {
-                        gamepad.style.visibility = "hidden";
-                    }
+                if ("timerButton" in parsedArgs) {
+                    args.timer = {
+                        control: parsedArgs.timerButton
+                    };
                 }
                 else {
-                    setupDefaultGamepad();
+                    args.timer = {
+                        control: "l2"
+                    };
                 }
 
-                if ("timerButton" in parsedArgs) {
-                    args.timerButton = parsedArgs.timerButton;
+                if ("nogamepad" in parsedArgs) {
+                    args.input = {
+                        gamepad: false
+                    };
+                }
+                else {
+                    args.input = {
+                        gamepad: true
+                    };
                 }
 
-                return args
+                return args;
             }
 
             /**
@@ -192,11 +193,13 @@
                 _input.addEventListener("change", loadJsonFile);
 
                 initialTimerSetup();
+                setupDefaultGamepad();
 
                 /* Initial setup from query string */
                 setupScreen(parseArgs());
             }
 
+            /** TODO Delete this */
             function dummy() {
                 // Adjust the border multiplier if the game is too tall
                 let gameViewMulti = _gameViewInc;
@@ -233,65 +236,11 @@
                 gameViewBottom = document.getElementById("gameView").offsetTop;
                 gameViewBottom += document.getElementById("gameView").offsetHeight;
 
-
-
-
-                // Set and centralize the game title
-                document.getElementById("title").innerText = args.gameTitle;
-
-                val = getLabelLength(args.gameTitle);
-                newWidth = makeValueEven(Math.floor(val * _timerDivWidthInc))
-                val = document.getElementById("title").offsetHeight;
-                newHeight = makeValueEven(Math.floor(val * _timerDivHeightInc))
-
-                element = document.getElementById("titleDiv");
-                element.style.height = newHeight+"px";
-
-                if (args.height > _maxHeight) {
-                    // Place it on the left side of the screen
-                    centerDomHorizontal("titleDiv", "timerDiv", newWidth, true);
-
-                    // Place it above the timer
-                    centerDomVertical("titleDiv", "timerDiv", null, true);
-                    val = element.offsetTop - newHeight - 8;
-                    element.style.top = val+"px";
-                }
-                else {
-                    // Place it on its default position
-                    centerDomHorizontal("titleDiv", "", newWidth, true);
-
-                    // Place the game's title in the upper quarter of the bottom of the screen
-                    val = (document.body.offsetHeight - gameViewBottom) * 0.25;
-                    val = makeValueEven(gameViewBottom + val);
-                    element.style.top = val+"px";
-                }
-
-                // Centralize the title label
-                centerDomHorizontal("title", "titleDiv", null, true);
-                centerDomVertical("title", "titleDiv", null, true);
-
-                // Place the lines around the timer box
-                positionDivLine("titleLine1", "top", 2, -2)
-                positionDivLine("titleLine2", "bottom", 2, -2)
-
                 // Place the gamepad (no matter whether visible or not) slightly bellow the timer
                 element = document.getElementById("gamepad-view");
                 val = element.children[0].offsetWidth;
                 centerDomHorizontal("gamepad-view", "", val, true, gameViewLeft);
                 setDomPositionBellow("gamepad-view", "timerDiv", 8, true);
-
-                // Write the game info into the screen
-                val = "&nbsp game position: {";
-                val += " x: "+gameColorkey.offsetLeft;
-                val += ", y: "+gameColorkey.offsetTop;
-                val += ", w: "+gameColorkey.offsetWidth;
-                val += ", h: "+gameColorkey.offsetHeight;
-                val += " } &nbsp";
-                document.getElementById("gameInfo").innerHTML = val;
-
-                // Configure the timer callback
-                setupTimer(document.getElementById("timer"));
-                setGamepadCallback(args.timerButton, timerCallback);
             }
 
             /**
@@ -371,6 +320,9 @@
                 _reader.readAsText(_file);
             }
 
+            /**
+             * Configure the timer border.
+             */
             function initialTimerSetup() {
                 let w = 0, h = 0;
 
@@ -403,6 +355,25 @@
             }
 
             /**
+             * Configure input visibility, and assign keys to the keyboard view
+             * (if any).
+             */
+            function configureInput(input) {
+                let gamepad = document.getElementById("gamepad-view");
+
+                if (!("gamepad" in input) || !input.gamepad) {
+                    gamepad.style.visibility = "hidden";
+                }
+                else {
+                    gamepad.style.visibility = "visible";
+                }
+            }
+
+            function centerLeftView() {
+                /* TODO Center the left side of the screen */
+            }
+
+            /**
              * Configures the screen.
              *
              * @param{config} A 'config' object. Look at docs/config.md for more info.
@@ -412,7 +383,16 @@
                     _setLabelLate = false;
                     configureDisplay(config.display);
                     setTitle(config.title);
-                    /* TODO Center the left side of the screen */
+                    if ("timer" in config && "control" in config.timer) {
+                        setGamepadCallback(config.timer.control, timerCallback);
+                    }
+                    if (!("input" in config)) {
+                        configureInput({});
+                    }
+                    else {
+                        configureInput(config.input);
+                    }
+                    centerLeftView();
                 } catch (e) {
                     alert(e);
                     /* Throwing makes the exception appear on the console */

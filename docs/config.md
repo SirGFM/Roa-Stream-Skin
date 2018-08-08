@@ -7,6 +7,9 @@ This object controls how the UI is laid out.
 | `display` | Object | **Yes** | Defines the game window/border |
 | `title` | String | **Yes** | Game's title |
 | `strict` | Boolean | **No** | Whether the dimensions should be restricted to the maximum value. **Default: false** |
+| `timer` | Object | **No** | Configures the timer. If not set, default to L2 controlling it. |
+| `input` | Object | **No** | Controls visibility of every input and keyboard configuration. Defaults to gamepad visible. |
+
 
 ## Display object
 
@@ -31,3 +34,20 @@ For, clarity, both are listed in the tables bellow:
 | `type` | String | **Yes** | Must be **`custom`** |
 | `width` | Integer | **Yes** | |
 | `height` | Integer | **Yes** | |
+
+
+## Timer object
+
+This may \~eventually\~ (as soon as finish refactoring) be used to configure
+splits.
+
+| **Name** | **Type** | **Required** | **Description** |
+| --- | --- | --- | --- |
+| `control` | String | **No** | Which button controls the timer. Only works with the gamepad, for now. |
+
+
+## Input object
+
+| **Name** | **Type** | **Required** | **Description** |
+| --- | --- | --- | --- |
+| `gamepad` | Boolean | **No** | Whether the gamepad if visible. **Default: true** |
