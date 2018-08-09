@@ -16,6 +16,8 @@ const _maxWidth = 1024;
 const _maxHeight = 576;
 /* By how much the game should increase in either direction. Starts as 10% */
 let _gameViewInc = 1.1;
+/* Width of the label's border */
+const _outlineWidth = 0.2;
 
 /* Display loaded from the config file */
 let _display;

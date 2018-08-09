@@ -324,13 +324,7 @@
                 /* Calculate the accumulated height of every element, and the
                  * distance between elements. */
                 for (let i in els) {
-                    let el = els[i];
-                    if (el.offsetHeight == 0) {
-                        /* For the gamepad (and possibly other such divs), the
-                         * div itself has no height. */
-                        el = el.firstElementChild;
-                    }
-                    maxH += el.offsetHeight;
+                    maxH += getIntegerAttr(els[i], "offsetHeight");
                 }
                 dist = getValidDimension((maxH * 0.1) / (els.length - 1));
                 maxH = getValidDimension(maxH * 1.1);
@@ -341,24 +335,14 @@
                 /* Set each object's position */
                 for (let i in els) {
                     let el = els[i];
+
+                    let left = getIntegerAttr(el, "offsetWidth");
+                    left = getValidDimension((getLeftView() - left) * 0.5);
+
                     el.style.top = top + "px";
-                    if (el.offsetHeight == 0) {
-                        el = el.firstElementChild;
-                    }
-                    top += el.offsetHeight + dist;
-                }
+                    el.style.left = left + "px";
 
-                /* Also center the objects horizontally */
-                for (let i in els) {
-                    let el = els[i];
-                    let val = el.offsetWidth;
-
-                    if (val == 0) {
-                        val = el.firstElementChild.offsetWidth;
-                    }
-
-                    val = getValidDimension((getLeftView() - val) * 0.5);
-                    el.style.left = val + "px";
+                    top += getIntegerAttr(el, "offsetHeight") + dist;
                 }
 
                 /* Center every label within its border */

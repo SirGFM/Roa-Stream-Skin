@@ -292,3 +292,17 @@ function positionDivLine(elementName, pos, offset, widthDiff) {
     centerDomHorizontal(elementName, element.parentElement.id, newWidth+widthDiff, true);
     element.style.left = Math.floor(widthDiff * -0.5)+"px";
 }
+
+/**
+ * Retrieve an integer attribute from an element. If it's 0, the first child's
+ * attribute is retrieved instead.
+ *
+ * @{element} The element
+ * @{attrName} The attribute's name
+ */
+function getIntegerAttr(element, attrName) {
+    if (element[attrName] == 0) {
+        return element.firstElementChild[attrName];
+    }
+    return element[attrName];
+}
