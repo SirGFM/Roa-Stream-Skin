@@ -36,6 +36,18 @@
                 image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
                 -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
             }
+            .configButton {
+                background-image: url('/img/config/default.png');
+                width: 32px;
+                height: 32px;
+                border: 0;
+            }
+            .configButton:hover {
+                background-image: url('/img/config/hover.png');
+            }
+            .configButton:active {
+                background-image: url('/img/config/press.png');
+            }
             .m5x7 {
                 font-family: "m5x7";
                 font-size: 48px;
@@ -55,7 +67,7 @@
             .gameInfo {
                 font-size: 24px;
                 bottom: 0;
-                right: 0;
+                left: 0;
             }
             .fixedRoot {
                 /* Fixed position (unchanged by viewport size). Can be used as
@@ -92,13 +104,14 @@
         <script type="text/javascript" src="/script/gamepad.js"></script>
         <script type="text/javascript" src="/script/utils.js"></script>
         <script type="text/javascript" src="/script/timer.js"></script>
+        <script type="text/javascript" src="/script/display.js"></script>
         <script>
-            const _gameViewInc = 1.1;
-            const _timerDivWidthInc = 1.1;
-            const _timerDivHeightInc = 1.1;
-            const _outlineWidth = 0.2;
-            const _maxWidth = 719;
-            const _maxHeight = 580;
+            /* How much bigger the title's border should be */
+            const _borderInc = 1.1;
+            /* (duplicated) Window height */
+            const _winHeight = 720;
+            /* Whether the vertical position of the label should be set at a later time */
+            let _setLabelLate = false;
 
             /**
              * Bootstrap, after the page is loaded
@@ -115,188 +128,266 @@
                 let args = {}
                 let parsedArgs = parseURL(window.location.href);
 
-                args.width = 0;
-                args.height = 0;
-                args.gameTitle = "Game Title";
-                args.timerButton = "l2";
-
-                // Parse the arguments
-                if ("gameWidth" in parsedArgs) {
-                    args.width = parseInt(parsedArgs.gameWidth);
-                }
-
-                if ("gameHeight" in parsedArgs) {
-                    args.height = parseInt(parsedArgs.gameHeight);
-                }
-
                 if ("gameConsole" in parsedArgs) {
-                    switch (parsedArgs.gameConsole) {
-                        case "NES":
-                        case "nes": {
-                            args.width = 598;
-                            args.height = 470;
-                        } break;
-                        case "GB":
-                        case "GBC":
-                        case "gb":
-                        case "gbc": {
-                            args.width = 480;
-                            args.height = 432;
-                        } break;
-                        case "MD":
-                        case "MegaDrive":
-                        case "megadrive":
-                        case "md": {
-                            args.width = 640;
-                            args.height = 480;
-                        } break;
-                        case "GBA":
-                        case "gba": {
-                            args.width = 720;
-                            args.height = 480;
-                        } break;
-                        case "SNES":
-                        case "snes": {
-                            args.width = 768;
-                            args.height = 672;
-                        } break;
+                    args.display = {
+                        type: "console",
+                        mode: parsedArgs.gameConsole
+                    };
+                }
+                else {
+                    let w = 0, h = 0;
+
+                    if ("gameWidth" in parsedArgs) {
+                        w = parseInt(parsedArgs.gameWidth);
                     }
+                    if ("gameHeight" in parsedArgs) {
+                        h = parseInt(parsedArgs.gameHeight);
+                    }
+
+                    args.display = {
+                        type: "custom",
+                        width: w,
+                        height: h,
+                    };
                 }
 
                 if ("gameTitle" in parsedArgs) {
-                    args.gameTitle = parsedArgs.gameTitle.replace(/%20/g, " ");
-                }
-
-                if ("nogamepad" in parsedArgs) {
-                    let gamepad = document.getElementById("gamepad-view");
-                    if (gamepad) {
-                        gamepad.style.visibility = "hidden";
-                    }
+                    args.title = parsedArgs.gameTitle.replace(/%20/g, " ");
                 }
                 else {
-                    setupDefaultGamepad();
+                    args.title = "Game Title";
                 }
 
                 if ("timerButton" in parsedArgs) {
-                    args.timerButton = parsedArgs.timerButton;
+                    args.timer = {
+                        control: parsedArgs.timerButton
+                    };
+                }
+                else {
+                    args.timer = {
+                        control: "l2"
+                    };
                 }
 
-                return args
+                if ("nogamepad" in parsedArgs) {
+                    args.input = {
+                        gamepad: false
+                    };
+                }
+                else {
+                    args.input = {
+                        gamepad: true
+                    };
+                }
+
+                return args;
             }
 
             /**
              * Bootstrap, after the page is loaded
              */
             function bootstrap() {
-                let args = parseArgs();
+                /* Setup the hook so pressing the button will load a file */
+                let _input = document.getElementById("configInput");
+                _input.addEventListener("change", loadJsonFile);
 
-                // Adjust the border multiplier if the game is too tall
-                let gameViewMulti = _gameViewInc;
-                if (args.height > _maxHeight) {
-                    gameViewMulti = 1.0 + (_gameViewInc - 1.0) * 0.5;
+                initialTimerSetup();
+                setupDefaultGamepad();
+
+                /* Initial setup from query string */
+                setupScreen(parseArgs());
+            }
+
+            /**
+             * Set the title and configure its border.
+             *
+             * @param{title} The game's title
+             */
+            function setTitle(title) {
+                let el = document.getElementById("title");
+                let border = document.getElementById("titleDiv");
+                let h = 0, w = 0, x = 0, y = 0;
+
+                el.innerText = title;
+                w = getValidDimension(getLabelLength(title) * _borderInc);
+                h = getValidDimension(el.offsetHeight * _borderInc);
+
+                if (h >= getUnderView()) {
+                    /* Place it on the left side of the screen */
+                    x = getValidDimension((getLeftView() - w) * 0.5);
+                    /* Vertical position will be set later */
+                    _setLabelLate = true;
+                }
+                else {
+                    let view = document.getElementById("gameView");
+
+                    /* Center it bellow the game view */
+                    x = getValidDimension((view.offsetWidth - w) * 0.5);
+                    x += view.offsetLeft;
+
+                    /* Place it in the upper quarter of the bottom of the screen */
+                    y = view.offsetTop + view.offsetHeight;
+                    y = getValidDimension(y + getUnderView() * 0.25);
                 }
 
+                border.style.top = y + "px";
+                border.style.left = x + "px";
+                border.style.width = w + "px";
+                border.style.height = h + "px";
 
-                let newWidth = makeValueEven(Math.floor(args.width * gameViewMulti));
-                let newHeight = makeValueEven(Math.floor(args.height * gameViewMulti));
-                let gameViewLeft = 0;
-                let gameViewBottom = 0;
-                let val = 0;
-                let element = null;
+                /* Adorn the title with lines */
+                positionDivLine("titleLine1", "top", 2, -2)
+                positionDivLine("titleLine2", "bottom", 2, -2)
+            }
 
-                // Centralize the game border
-                centerDomHorizontal("gameView", "", newWidth, true);
-                document.getElementById("gameView").style.height = newHeight+"px";
-                // Adjust the game window position if it's too large
-                if (args.width > _maxWidth) {
-                    document.getElementById("gameView").style.left = "unset";
-                    document.getElementById("gameView").style.right = "8px";
+            /**
+             * Called from 'loadConfigButton', simply clicks on 'configInput' to
+             * get a file selector UI.
+             */
+            function setupLoadFile() {
+                document.getElementById("configInput").click();
+            }
+
+            /**
+             * Loads a JSON file as the page's configuration. Called as
+             * 'configInput's handler.
+             */
+            function loadJsonFile() {
+                if (this.files.length <= 0) {
+                    alert("No file selected!");
+                    return;
                 }
 
-                // Centralize the inner game view
-                centerDomHorizontal("gameColorkey", "gameView", args.width, true);
-                centerDomVertical("gameColorkey", "gameView", args.height, true);
-                // Set the inner view's outline to _outlineWidth% of the total area
-                val = (newWidth - args.width) * 0.5;
-                val = Math.floor(val * _outlineWidth);
-                document.getElementById("gameColorkey").style._outlineWidth = val+"px";
+                /* NOTE: OBS on Windows does not report JSON files with the
+                 * proper MIME type. */
+                let _file = this.files[0];
+                if (_file.type != "" && _file.type != "application/json") {
+                    alert("Invalid file type! Expected a JSON file.");
+                    return;
+                }
 
-                gameViewLeft = document.getElementById("gameView").offsetLeft;
-                gameViewBottom = document.getElementById("gameView").offsetTop;
-                gameViewBottom += document.getElementById("gameView").offsetHeight;
+                let _reader = new FileReader();
+                _reader.onload = function (e) { setupScreen(JSON.parse(e.target.result)); };
+                _reader.readAsText(_file);
+            }
 
-                // Cetralize the timer
-                val = getLabelLength(document.getElementById("timer").innerText);
-                newWidth = makeValueEven(Math.floor(val * _timerDivWidthInc))
-                val = document.getElementById("timer").offsetHeight;
-                newHeight = makeValueEven(Math.floor(val * _timerDivHeightInc))
-                centerDomHorizontal("timerDiv", "", newWidth, true, gameViewLeft);
-                centerDomVertical("timerDiv", "", newHeight, true, gameViewBottom);
+            /**
+             * Configure the timer border.
+             */
+            function initialTimerSetup() {
+                let w = 0, h = 0;
 
-                // Centralize the timer label
+                /* Set the timer's label */
+                setupTimer(document.getElementById("timer"));
+
+                /* Properly configure the timer border */
+                let timer = document.getElementById("timer");
+
+                w = getLabelLength(timer.innerText);
+                w = getValidDimension(w * _borderInc);
+                h = timer.offsetHeight;
+                h = getValidDimension(h * _borderInc);
+
+                let border = document.getElementById("timerDiv");
+                border.style.width = w + "px";
+                border.style.height = h + "px";
+
+                /* Adorn the timer border with lines */
+                positionDivLine("timerLine1", "top", 2, -2)
+                positionDivLine("timerLine2", "bottom", 2, -2)
+            }
+
+            /**
+             * Configure input visibility, and assign keys to the keyboard view
+             * (if any).
+             */
+            function configureInput(input) {
+                let gamepad = document.getElementById("gamepad-view");
+
+                if (!("gamepad" in input) || !input.gamepad) {
+                    input.gamepad = false;
+                    gamepad.style.visibility = "hidden";
+                }
+                else {
+                    gamepad.style.visibility = "visible";
+                }
+            }
+
+            /**
+             * Center the left side of the screen
+             */
+            function centerLeftView(config) {
+                let gamepad = document.getElementById("gamepad-view");
+                let timer = document.getElementById("timerDiv");
+                let title = document.getElementById("titleDiv");
+                let els = [];
+                let maxH = 0, top = 0, dist = 0;
+
+                /* Add every object that must be centralized to a list. The
+                 * inclusion order defines which object is at the top!! */
+                els.push(timer);
+                if (config.input.gamepad) {
+                    els.push(gamepad);
+                }
+                if (_setLabelLate) {
+                    els.push(title);
+                }
+
+                /* Calculate the accumulated height of every element, and the
+                 * distance between elements. */
+                for (let i in els) {
+                    maxH += getIntegerAttr(els[i], "offsetHeight");
+                }
+                dist = getValidDimension((maxH * 0.1) / (els.length - 1));
+                maxH = getValidDimension(maxH * 1.1);
+
+                /* Calculate the initial pos and distance between objects */
+                top = getValidDimension((_winHeight - maxH) * 0.5);
+
+                /* Set each object's position */
+                for (let i in els) {
+                    let el = els[i];
+
+                    let left = getIntegerAttr(el, "offsetWidth");
+                    left = getValidDimension((getLeftView() - left) * 0.5);
+
+                    el.style.top = top + "px";
+                    el.style.left = left + "px";
+
+                    top += getIntegerAttr(el, "offsetHeight") + dist;
+                }
+
+                /* Center every label within its border */
                 centerDomHorizontal("timer", "timerDiv", null, true);
                 centerDomVertical("timer", "timerDiv", null, true);
 
-                // Place the lines around the timer box
-                positionDivLine("timerLine1", "top", 2, -2)
-                positionDivLine("timerLine2", "bottom", 2, -2)
-
-                // Set and centralize the game title
-                document.getElementById("title").innerText = args.gameTitle;
-
-                val = getLabelLength(args.gameTitle);
-                newWidth = makeValueEven(Math.floor(val * _timerDivWidthInc))
-                val = document.getElementById("title").offsetHeight;
-                newHeight = makeValueEven(Math.floor(val * _timerDivHeightInc))
-
-                element = document.getElementById("titleDiv");
-                element.style.height = newHeight+"px";
-
-                if (args.height > _maxHeight) {
-                    // Place it on the left side of the screen
-                    centerDomHorizontal("titleDiv", "timerDiv", newWidth, true);
-
-                    // Place it above the timer
-                    centerDomVertical("titleDiv", "timerDiv", null, true);
-                    val = element.offsetTop - newHeight - 8;
-                    element.style.top = val+"px";
-                }
-                else {
-                    // Place it on its default position
-                    centerDomHorizontal("titleDiv", "", newWidth, true);
-
-                    // Place the game's title in the upper quarter of the bottom of the screen
-                    val = (document.body.offsetHeight - gameViewBottom) * 0.25;
-                    val = makeValueEven(gameViewBottom + val);
-                    element.style.top = val+"px";
-                }
-
-                // Centralize the title label
                 centerDomHorizontal("title", "titleDiv", null, true);
                 centerDomVertical("title", "titleDiv", null, true);
+            }
 
-                // Place the lines around the timer box
-                positionDivLine("titleLine1", "top", 2, -2)
-                positionDivLine("titleLine2", "bottom", 2, -2)
-
-                // Place the gamepad (no matter whether visible or not) slightly bellow the timer
-                element = document.getElementById("gamepad-view");
-                val = element.children[0].offsetWidth;
-                centerDomHorizontal("gamepad-view", "", val, true, gameViewLeft);
-                setDomPositionBellow("gamepad-view", "timerDiv", 8, true);
-
-                // Write the game info into the screen
-                val = "&nbsp game position: {";
-                val += " x: "+gameColorkey.offsetLeft;
-                val += ", y: "+gameColorkey.offsetTop;
-                val += ", w: "+gameColorkey.offsetWidth;
-                val += ", h: "+gameColorkey.offsetHeight;
-                val += " } &nbsp";
-                document.getElementById("gameInfo").innerHTML = val;
-
-                // Configure the timer callback
-                setupTimer(document.getElementById("timer"));
-                setGamepadCallback(args.timerButton, timerCallback);
+            /**
+             * Configures the screen.
+             *
+             * @param{config} A 'config' object. Look at docs/config.md for more info.
+             */
+            function setupScreen(config) {
+                try {
+                    _setLabelLate = false;
+                    configureDisplay(config.display);
+                    setTitle(config.title);
+                    if ("timer" in config && "control" in config.timer) {
+                        setGamepadCallback(config.timer.control, timerCallback);
+                    }
+                    if (!("input" in config)) {
+                        config.input = {};
+                    }
+                    configureInput(config.input);
+                    centerLeftView(config);
+                } catch (e) {
+                    alert(e);
+                    /* Throwing makes the exception appear on the console */
+                    throw e;
+                }
             }
         </script>
     </head>
@@ -342,5 +433,9 @@
         <label id="title" class="fixedRoot m5x7 outlined centered">Game title</label>
 
         <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
+
+        <button id="loadConfigButton" class='fixedRoot img configButton' type="button" style="top: 672px; left: 160px;" onclick="setupLoadFile()"> </button>
+        <input id="configInput" type="file" name="name" style="display: none;" />
+
     </body>
 </html>
