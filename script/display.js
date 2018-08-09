@@ -191,12 +191,12 @@ function configureDisplay(argsDisplay) {
     game.style.top = _display.game.y + "px";
 
     /* Write the game info into the screen */
-    let str = "&nbsp game position: {";
+    let str = "&nbsp game position:&nbsp</br>&nbsp&nbsp{";
     str += " x: "+gameColorkey.offsetLeft;
     str += ", y: "+gameColorkey.offsetTop;
-    str += ", w: "+gameColorkey.offsetWidth;
+    str += ",&nbsp</br>&nbsp&nbsp w: "+gameColorkey.offsetWidth;
     str += ", h: "+gameColorkey.offsetHeight;
-    str += " } &nbsp";
+    str += "&nbsp}&nbsp";
     document.getElementById("gameInfo").innerHTML = str;
 }
 
