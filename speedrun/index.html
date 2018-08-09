@@ -96,23 +96,10 @@
         <script>
             /* How much bigger the title's border should be */
             const _borderInc = 1.1;
+            /* (duplicated) Window height */
+            const _winHeight = 720;
             /* Whether the vertical position of the label should be set at a later time */
             let _setLabelLate = false;
-
-            //const _leftViewWidth = 240;
-            //const _rightViewWidth = 1040;
-            // 16:9 res x 64
-            //const _maxGameWidth = 1024;
-            //const _maxGameHeight = 576;
-            /* By how much the game should increase in either direction */
-            //const _gameViewInc = 1.1;
-
-            //const _gameViewInc = 1.1;
-            const _timerDivWidthInc = 1.1;
-            const _timerDivHeightInc = 1.1;
-            const _outlineWidth = 0.2;
-            //const _maxWidth = 719;
-            //const _maxHeight = 580;
 
             /**
              * Bootstrap, after the page is loaded
@@ -199,50 +186,6 @@
                 setupScreen(parseArgs());
             }
 
-            /** TODO Delete this */
-            function dummy() {
-                // Adjust the border multiplier if the game is too tall
-                let gameViewMulti = _gameViewInc;
-                if (args.height > _maxHeight) {
-                    gameViewMulti = 1.0 + (_gameViewInc - 1.0) * 0.5;
-                }
-
-
-                let newWidth = makeValueEven(Math.floor(args.width * gameViewMulti));
-                let newHeight = makeValueEven(Math.floor(args.height * gameViewMulti));
-                let gameViewLeft = 0;
-                let gameViewBottom = 0;
-                let val = 0;
-                let element = null;
-
-                // Centralize the game border
-                centerDomHorizontal("gameView", "", newWidth, true);
-                document.getElementById("gameView").style.height = newHeight+"px";
-                // Adjust the game window position if it's too large
-                if (args.width > _maxWidth) {
-                    document.getElementById("gameView").style.left = "unset";
-                    document.getElementById("gameView").style.right = "8px";
-                }
-
-                // Centralize the inner game view
-                centerDomHorizontal("gameColorkey", "gameView", args.width, true);
-                centerDomVertical("gameColorkey", "gameView", args.height, true);
-                // Set the inner view's outline to _outlineWidth% of the total area
-                val = (newWidth - args.width) * 0.5;
-                val = Math.floor(val * _outlineWidth);
-                document.getElementById("gameColorkey").style._outlineWidth = val+"px";
-
-                gameViewLeft = document.getElementById("gameView").offsetLeft;
-                gameViewBottom = document.getElementById("gameView").offsetTop;
-                gameViewBottom += document.getElementById("gameView").offsetHeight;
-
-                // Place the gamepad (no matter whether visible or not) slightly bellow the timer
-                element = document.getElementById("gamepad-view");
-                val = element.children[0].offsetWidth;
-                centerDomHorizontal("gamepad-view", "", val, true, gameViewLeft);
-                setDomPositionBellow("gamepad-view", "timerDiv", 8, true);
-            }
-
             /**
              * Set the title and configure its border.
              *
@@ -283,10 +226,6 @@
                 /* Adorn the title with lines */
                 positionDivLine("titleLine1", "top", 2, -2)
                 positionDivLine("titleLine2", "bottom", 2, -2)
-
-                /* TODO Move these 2 statements to the later function that centers the left side */
-                centerDomHorizontal("title", "titleDiv", null, true);
-                centerDomVertical("title", "titleDiv", null, true);
             }
 
             /**
@@ -344,14 +283,6 @@
                 /* Adorn the timer border with lines */
                 positionDivLine("timerLine1", "top", 2, -2)
                 positionDivLine("timerLine2", "bottom", 2, -2)
-
-                /* TODO Center the timer div afterwards */
-                centerDomHorizontal("timerDiv", "", w, true, 240);
-                centerDomVertical("timerDiv", "", h, true, 720);
-
-                /* TODO Move these 2 statements to the later function that centers the left side */
-                centerDomHorizontal("timer", "timerDiv", null, true);
-                centerDomVertical("timer", "timerDiv", null, true);
             }
 
             /**
@@ -362,6 +293,7 @@
                 let gamepad = document.getElementById("gamepad-view");
 
                 if (!("gamepad" in input) || !input.gamepad) {
+                    input.gamepad = false;
                     gamepad.style.visibility = "hidden";
                 }
                 else {
@@ -369,8 +301,72 @@
                 }
             }
 
-            function centerLeftView() {
-                /* TODO Center the left side of the screen */
+            /**
+             * Center the left side of the screen
+             */
+            function centerLeftView(config) {
+                let gamepad = document.getElementById("gamepad-view");
+                let timer = document.getElementById("timerDiv");
+                let title = document.getElementById("titleDiv");
+                let els = [];
+                let maxH = 0, top = 0, dist = 0;
+
+                /* Add every object that must be centralized to a list. The
+                 * inclusion order defines which object is at the top!! */
+                els.push(timer);
+                if (config.input.gamepad) {
+                    els.push(gamepad);
+                }
+                if (_setLabelLate) {
+                    els.push(title);
+                }
+
+                /* Calculate the accumulated height of every element, and the
+                 * distance between elements. */
+                for (let i in els) {
+                    let el = els[i];
+                    if (el.offsetHeight == 0) {
+                        /* For the gamepad (and possibly other such divs), the
+                         * div itself has no height. */
+                        el = el.firstElementChild;
+                    }
+                    maxH += el.offsetHeight;
+                }
+                dist = getValidDimension((maxH * 0.1) / (els.length - 1));
+                maxH = getValidDimension(maxH * 1.1);
+
+                /* Calculate the initial pos and distance between objects */
+                top = getValidDimension((_winHeight - maxH) * 0.5);
+
+                /* Set each object's position */
+                for (let i in els) {
+                    let el = els[i];
+                    el.style.top = top + "px";
+                    if (el.offsetHeight == 0) {
+                        el = el.firstElementChild;
+                    }
+                    top += el.offsetHeight + dist;
+                }
+
+                /* Also center the objects horizontally */
+                for (let i in els) {
+                    let el = els[i];
+                    let val = el.offsetWidth;
+
+                    if (val == 0) {
+                        val = el.firstElementChild.offsetWidth;
+                    }
+
+                    val = getValidDimension((getLeftView() - val) * 0.5);
+                    el.style.left = val + "px";
+                }
+
+                /* Center every label within its border */
+                centerDomHorizontal("timer", "timerDiv", null, true);
+                centerDomVertical("timer", "timerDiv", null, true);
+
+                centerDomHorizontal("title", "titleDiv", null, true);
+                centerDomVertical("title", "titleDiv", null, true);
             }
 
             /**
@@ -387,12 +383,10 @@
                         setGamepadCallback(config.timer.control, timerCallback);
                     }
                     if (!("input" in config)) {
-                        configureInput({});
+                        config.input = {};
                     }
-                    else {
-                        configureInput(config.input);
-                    }
-                    centerLeftView();
+                    configureInput(config.input);
+                    centerLeftView(config);
                 } catch (e) {
                     alert(e);
                     /* Throwing makes the exception appear on the console */
