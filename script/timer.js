@@ -129,19 +129,36 @@ function updateTimer() {
  * Updates the timer label with the currently accumulated timer.
  */
 function setTimerText() {
-    let ms = "" + (_accumulatedTime % 1000);
-    let s = "" + Math.floor((_accumulatedTime / 1000) % 60);
-    let min = "" + Math.floor((_accumulatedTime / 60000) % 60);
-    let hour = "" + Math.floor((_accumulatedTime / 3600000) % 24);
-
     if (_timerLabel) {
-        let txt = "";
-
-        txt += hour.padStart(2, "0") + ":";
-        txt += min.padStart(2, "0") + ":";
-        txt += s.padStart(2, "0") + ".";
-        txt += ms.padStart(3, "0");
-
-        _timerLabel.innerText = txt;
+        _timerLabel.innerText = timeToText(_accumulatedTime);
     }
+}
+
+/**
+ * Converts a given time to text.
+ *
+ * @param{time} The integer time to be converted to string.
+ * @param{showMs} Whether the text should contain milliseconds.
+ * @param{autoHideHour} Whether units should be hidden, unless greater than 0.
+ */
+function timeToText(time, showMs=true, autoHide=false) {
+    let ms = time % 1000;
+    let s = Math.floor((time / 1000) % 60);
+    let min = Math.floor((time / 60000) % 60);
+    let hour = Math.floor((time / 3600000) % 24);
+
+    let txt = "";
+
+    if (!autoHide || hour > 0) {
+        txt += ("" + hour).padStart(2, "0") + ":";
+    }
+    if (!autoHide || hour > 0 || min > 0) {
+        txt += ("" + min).padStart(2, "0") + ":";
+    }
+    txt += ("" + s).padStart(2, "0");
+    if (showMs) {
+        txt += "." + ms.padStart(3, "0");
+    }
+
+    return txt;
 }

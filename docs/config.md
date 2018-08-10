@@ -43,7 +43,22 @@ splits.
 
 | **Name** | **Type** | **Required** | **Description** |
 | --- | --- | --- | --- |
-| `control` | String | **No** | Which button controls the timer. Only works with the gamepad, for now. |
+| `control` | String | **No** | Which button controls the timer. Only works with the gamepad, for now |
+| `split` | Object | **No** | Controls display of the game's splits |
+
+
+## Split object
+
+| **Name** | **Type** | **Required** | **Description** |
+| --- | --- | --- | --- |
+| `entries` | Array | Array of split entries, describing the game's splits |
+
+### Split entry object
+
+| **Name** | **Type** | **Required** | **Description** |
+| --- | --- | --- | --- |
+| `label` | String | **Yes** | The split's label/title/name |
+| `best` | Integer | **No** | Best time for this split (from the start of the game. If not set, **defaults to NaN** |
 
 
 ## Input object
