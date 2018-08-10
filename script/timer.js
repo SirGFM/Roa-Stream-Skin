@@ -11,7 +11,7 @@ let _lastState = false;
 // When the button was actually pressed
 let _pressTime = 0;
 // Whether the press has been handled
-let _handle = false;
+let _handled = false;
 
 // Time when the last callback was called
 let _lastCallback = 0;
@@ -78,6 +78,13 @@ function timerCallback(state) {
 }
 
 /**
+ * Return time with fixed drift from when the button was first pressed.
+ */
+let getFixedAcc = function() {
+    return _accumulatedTime - (Date.now() - _pressTime);
+}
+
+/**
  * Resets the timer on multipresses and (un)pause it on single presses.
  */
 function handleTimerCallback() {
@@ -90,7 +97,13 @@ function handleTimerCallback() {
         setTimerText();
         break;
     default:
-        toggleTimer();
+        if (_timerRunner != null && hasMoreSplits()) {
+            setCurrentSplit(getFixedAcc());
+        }
+        /* Stop if the previous split was the last */
+        if (_timerRunner == null || !hasMoreSplits()) {
+            toggleTimer();
+        }
         break;
     }
 }
@@ -104,8 +117,7 @@ function toggleTimer(forceHalt) {
     if (forceHalt || _timerRunner != null) {
         window.clearInterval(_timerRunner);
         _timerRunner = null;
-        // Fix drift from when the button was first pressed
-        _accumulatedTime -= Date.now() - _pressTime;
+        _accumulatedTime = getFixedAcc();
         setTimerText();
     }
     else if (_timerRunner == null) {
@@ -123,6 +135,8 @@ function updateTimer() {
 
     _accumulatedTime = _prevAccumulatedTime + (now - _lastStartTime);
     setTimerText();
+    /* Update the split, if set */
+    updateCurrentDiff(_accumulatedTime);
 }
 
 /**

@@ -19,10 +19,12 @@ function setupSplits(splits) {
 
     if (!("entries" in splits)) {
         div.style.visibility = "hidden";
+        _cur = -1;
         return;
     }
 
     div.style.visibility = "visible";
+    _cur = 0;
 
     /* Make sure every only objects that will be used are visible */
     while (_els.length < splits.entries.length) {
@@ -81,23 +83,27 @@ function resetSplits(splits) {
     }
 }
 
-function setDiff(idx, time) {
+function setDiff(idx, time, force=false) {
     let obj = _els[idx];
     let ms = false, autoHide = true;
     let signal = "";
     let tmpTime = 0;
 
     if (time - obj.tgtTime >= 0) {
-        tmpTime = time;
-        txt = "+";
+        tmpTime = time - obj.tgtTime;
+        signal = "+";
     }
-    else if (time - obj.tgtTime > -10000) {
-        tmpTime = Math.abs(time);
-        txt = "-";
+    else if (force || time - obj.tgtTime > -10000) {
+        tmpTime = Math.abs(time - obj.tgtTime);
+        signal = "-";
+    }
+    else {
+        /* Split isn't too good nor has gone too bad*/
+        return;
     }
     ms = (tmpTime < 60000);
 
-    obj.diff.innerText = signal + timeToText(time - tmpTime, ms, autoHide);
+    obj.diff.innerText = signal + timeToText(tmpTime, ms, autoHide);
 }
 
 function updateSplit(idx, time, hideSplit=false) {
@@ -108,15 +114,50 @@ function updateSplit(idx, time, hideSplit=false) {
         obj.time.innerHTML = "NaN</br>";
     }
     else {
-        let autoHide = true;
+        let autoHide = true, force = true;
         let ms = (time < 60000);
 
         if (hideSplit) {
             obj.diff.innerText = "";
         }
         else {
-            setDiff(idx, time);
+            setDiff(idx, time, force);
         }
         obj.time.innerHTML = timeToText(time, ms, autoHide) + "</br>";
     }
+}
+
+function updateCurrentDiff(time) {
+    if (!hasMoreSplits()) {
+        return;
+    }
+    setDiff(_cur, time);
+}
+
+function setCurrentSplit(time) {
+    if (!hasMoreSplits()) {
+        return;
+    }
+    updateSplit(_cur, time);
+    _cur++;
+
+    let tgt = undefined;
+    if (_cur + 1 < _els.length) {
+        tgt = _els[_cur + 1]
+    }
+    else if (_cur < _els.length) {
+        tgt = _els[_cur]
+    }
+
+    if (tgt) {
+        try {
+            tgt.label.scrollIntoViewIfNeeded();
+        } catch (e) {
+            tgt.label.scrollIntoView();
+        }
+    }
+}
+
+function hasMoreSplits() {
+    return _cur >= 0 && _cur < _els.length;
 }

@@ -59,26 +59,24 @@
                 text-align: center;
             }
             .split {
+                font-size: 16px;
                 display: inline-table;
                 line-height: 36px;
                 vertical-align: middle;
             }
             .splitLabel {
                 text-align: left;
-                font-size: 16px;
-                width: 102px;
+                width: 133px;
                 padding-left: 1px;
-                padding-right: 2px;
             }
             .splitDiff {
                 text-align: center;
-                font-size: 32px;
-                width: 30px;
+                width: 40px;
             }
             .splitTime {
                 text-align: right;
-                font-size: 32px;
-                width: 85px;
+                font-size: 24px;
+                width: 65px;
             }
             .outlined {
                 text-shadow: -1px -1px 0 #000,
@@ -124,7 +122,7 @@
             .splitsDiv {
                 overflow: hidden;
                 max-height: 360px;
-                width: 220px;
+                width: 240px;
             }
         </style>
 
@@ -390,8 +388,20 @@
                 }
 
                 /* Adorn the splits border with lines */
-                positionDivLine("splitsLine1", "top", 2, -2)
-                positionDivLine("splitsLine2", "bottom", 2, -2)
+                do {
+                    let l1 = document.getElementById("splitsLine1");
+                    let l2 = document.getElementById("splitsLine2");
+
+                    l1.style.top = splits.offsetTop + 2 + "px";
+                    l1.style.left = splits.offsetLeft + 1 + "px";
+                    l1.style.height = "2px";
+                    l1.style.width = splits.offsetWidth - 2 + "px";
+
+                    l2.style.top = splits.offsetTop + splits.offsetHeight - 4 + "px";
+                    l2.style.left = splits.offsetLeft + 1 + "px";
+                    l2.style.height = "2px";
+                    l2.style.width = splits.offsetWidth - 2 + "px";
+                } while (0);
 
                 /* Center every label within its border */
                 centerDomHorizontal("timer", "timerDiv", null, true);
@@ -435,6 +445,11 @@
         </script>
     </head>
     <body>
+        <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
+
+        <button id="loadConfigButton" class='fixedRoot img configButton' type="button" style="top: 608px; left: 0px;" onclick="setupLoadFile()"> </button>
+        <input id="configInput" type="file" name="name" style="display: none;" />
+
         <div class='fixedRoot' id='gamepad-view'>
             <img class='fixedChild' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
 
@@ -475,14 +490,8 @@
         </div>
         <label id="title" class="fixedRoot m5x7 outlined centered">Game title</label>
 
-        <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
-
-        <button id="loadConfigButton" class='fixedRoot img configButton' type="button" style="top: 672px; left: 160px;" onclick="setupLoadFile()"> </button>
-        <input id="configInput" type="file" name="name" style="display: none;" />
-
-        <div id="splitsDiv" class="fixedRoot darkBg splitsDiv">
-            <div id="splitsLine1" class="fixedChild line"></div>
-            <div id="splitsLine2" class="fixedChild line"></div>
-        </div>
+        <div id="splitsDiv" class="fixedRoot darkBg splitsDiv"></div>
+        <div id="splitsLine1" class="fixedRoot line"></div>
+        <div id="splitsLine2" class="fixedRoot line"></div>
     </body>
 </html>
