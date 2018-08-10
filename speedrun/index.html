@@ -58,6 +58,28 @@
             .centered {
                 text-align: center;
             }
+            .split {
+                display: inline-table;
+                line-height: 36px;
+                vertical-align: middle;
+            }
+            .splitLabel {
+                text-align: left;
+                font-size: 16px;
+                width: 102px;
+                padding-left: 1px;
+                padding-right: 2px;
+            }
+            .splitDiff {
+                text-align: center;
+                font-size: 32px;
+                width: 30px;
+            }
+            .splitTime {
+                text-align: right;
+                font-size: 32px;
+                width: 85px;
+            }
             .outlined {
                 text-shadow: -1px -1px 0 #000,
                               1px -1px 0 #000,
@@ -98,6 +120,11 @@
                 background-color: #639bff;
                 height: 2px;
                 width: auto;
+            }
+            .splitsDiv {
+                overflow: hidden;
+                max-height: 360px;
+                width: 220px;
             }
         </style>
 
@@ -318,6 +345,7 @@
              * Center the left side of the screen
              */
             function centerLeftView(config) {
+                let splits = document.getElementById("splitsDiv");
                 let gamepad = document.getElementById("gamepad-view");
                 let timer = document.getElementById("timerDiv");
                 let title = document.getElementById("titleDiv");
@@ -326,6 +354,9 @@
 
                 /* Add every object that must be centralized to a list. The
                  * inclusion order defines which object is at the top!! */
+                if (splits.style.visibility == "visible") {
+                    els.push(splits);
+                }
                 els.push(timer);
                 if (config.input.gamepad) {
                     els.push(gamepad);
@@ -358,6 +389,10 @@
                     top += getIntegerAttr(el, "offsetHeight") + dist;
                 }
 
+                /* Adorn the splits border with lines */
+                positionDivLine("splitsLine1", "top", 2, -2)
+                positionDivLine("splitsLine2", "bottom", 2, -2)
+
                 /* Center every label within its border */
                 centerDomHorizontal("timer", "timerDiv", null, true);
                 centerDomVertical("timer", "timerDiv", null, true);
@@ -376,9 +411,16 @@
                     _setLabelLate = false;
                     configureDisplay(config.display);
                     setTitle(config.title);
-                    if ("timer" in config && "control" in config.timer) {
+                    if (!("timer" in config)) {
+                        config.timer = {};
+                    }
+                    if ("control" in config.timer) {
                         setGamepadCallback(config.timer.control, timerCallback);
                     }
+                    if (!("splits" in config.timer)) {
+                        config.timer.splits = {};
+                    }
+                    setupSplits(config.timer.splits);
                     if (!("input" in config)) {
                         config.input = {};
                     }
@@ -438,8 +480,9 @@
         <button id="loadConfigButton" class='fixedRoot img configButton' type="button" style="top: 672px; left: 160px;" onclick="setupLoadFile()"> </button>
         <input id="configInput" type="file" name="name" style="display: none;" />
 
-        <div id="splitsDiv" class="fixedRoot darkBg">
+        <div id="splitsDiv" class="fixedRoot darkBg splitsDiv">
+            <div id="splitsLine1" class="fixedChild line"></div>
+            <div id="splitsLine2" class="fixedChild line"></div>
         </div>
-
     </body>
 </html>

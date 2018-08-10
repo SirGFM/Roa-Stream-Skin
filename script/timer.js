@@ -157,7 +157,7 @@ function timeToText(time, showMs=true, autoHide=false) {
     }
     txt += ("" + s).padStart(2, "0");
     if (showMs) {
-        txt += "." + ms.padStart(3, "0");
+        txt += "." + ("" + ms).padStart(3, "0");
     }
 
     return txt;
