@@ -5,6 +5,7 @@
 /**
  * Group of elements inside 'splitsDiv', used to display the split. Each group
  * is represented by the object:
+ *   - div: The div that contains every label
  *   - label: The split's label/title/name
  *   - diff: Difference between the best and this run
  *   - time: Target/Achieved time on the split
@@ -30,33 +31,31 @@ function setupSplits(splits) {
     while (_els.length < splits.entries.length) {
         let obj = {};
 
+        obj.div = document.createElement("div");
         obj.label = document.createElement("label");
-        obj.label.setAttribute("class", "m5x7 split splitLabel");
+        obj.label.setAttribute("class", "m5x7 split splitLabel outlined");
         obj.diff = document.createElement("label");
-        obj.diff.setAttribute("class", "m5x7 split splitDiff");
+        obj.diff.setAttribute("class", "m5x7 split splitDiff outlined");
         obj.time = document.createElement("label");
-        obj.time.setAttribute("class", "m5x7 split splitTime");
+        obj.time.setAttribute("class", "m5x7 split splitTime outlined");
         obj.tgtTime = 0;
 
         _els.push(obj);
-        div.append(obj.label);
-        div.append(obj.diff);
-        div.append(obj.time);
+        obj.div.append(obj.label);
+        obj.div.append(obj.diff);
+        obj.div.append(obj.time);
+        div.append(obj.div);
     }
 
     for (let i = 0; i < splits.entries.length; i++) {
         let obj = _els[i];
 
-        obj.label.style.visibility = "visible";
-        obj.diff.style.visibility = "visible";
-        obj.time.style.visibility = "visible";
+        obj.div.style.visibility = "visible";
     }
     for (let i = splits.entries.length; i < _els.length; i++) {
         let obj = _els[i];
 
-        obj.label.style.visibility = "hidden";
-        obj.diff.style.visibility = "hidden";
-        obj.time.style.visibility = "hidden";
+        obj.div.style.visibility = "hidden";
     }
 
     resetSplits(splits);
@@ -81,9 +80,12 @@ function resetSplits(splits) {
 
         updateSplit(i, obj.tgtTime, hideSplit);
     }
+
+    /* Highlight the first split */
+    _els[0].div.setAttribute("class", "highlightedBg");
 }
 
-function setDiff(idx, time, force=false) {
+let setDiff = function(idx, time, force=false) {
     let obj = _els[idx];
     let ms = false, autoHide = true;
     let signal = "";
@@ -106,7 +108,7 @@ function setDiff(idx, time, force=false) {
     obj.diff.innerText = signal + timeToText(tmpTime, ms, autoHide);
 }
 
-function updateSplit(idx, time, hideSplit=false) {
+let updateSplit = function(idx, time, hideSplit=false) {
     let obj = _els[idx];
 
     if (isNaN(time)) {
@@ -138,8 +140,14 @@ function setCurrentSplit(time) {
     if (!hasMoreSplits()) {
         return;
     }
+
     updateSplit(_cur, time);
+
+    _els[_cur].div.removeAttribute("class", "highlightedBg");
     _cur++;
+    if (_cur < _els.length) {
+        _els[_cur].div.setAttribute("class", "highlightedBg");
+    }
 
     let tgt = undefined;
     if (_cur + 1 < _els.length) {
