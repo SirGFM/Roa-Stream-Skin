@@ -435,15 +435,27 @@
                         config.input = {};
                     }
 
+                    /* Setup event handler to center everything **after** the
+                     * splits are loaded */
+                    if ("server" in config.timer.splits) {
+                        let cb = function(e) {
+                            document.removeEventListener('finishSetup', cb)
+                            centerLeftView(config);
+                        }
+                        document.addEventListener('finishSetup', cb)
+                    }
+
                     /* Initialize everything */
                     configureDisplay(config.display);
                     setTitle(config.title);
                     if ("control" in config.timer) {
                         setGamepadCallback(config.timer.control, timerCallback);
                     }
-                    setupSplits(config.timer.splits);
                     configureInput(config.input);
-                    centerLeftView(config);
+                    setupSplits(config.timer.splits);
+                    if (!("server" in config.timer.splits)) {
+                        centerLeftView(config);
+                    }
                 } catch (e) {
                     alert(e);
                     /* Throwing makes the exception appear on the console */

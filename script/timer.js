@@ -91,19 +91,19 @@ function handleTimerCallback() {
     switch (_multiPressCount) {
     case _resetTimerCount:
         // Reset the time and pauses it
-        toggleTimer(true);
-        _accumulatedTime = 0;
+        toggleTimer(0, true);
         _prevAccumulatedTime = 0;
         setTimerText();
         reloadSplits();
         break;
     default:
+        let latest = getFixedAcc();
         if (_timerRunner != null && hasMoreSplits()) {
-            setCurrentSplit(getFixedAcc());
+            setCurrentSplit(latest);
         }
         /* Stop if the previous split was the last */
         if (_timerRunner == null || !hasMoreSplits()) {
-            toggleTimer();
+            toggleTimer(latest);
         }
         break;
     }
@@ -112,13 +112,14 @@ function handleTimerCallback() {
 /**
  * Pauses/Unpauses the timer
  *
+ * @param{time} Currently accumulated time
  * @param{forceHalt} Forces the timer to pause
  */
-function toggleTimer(forceHalt) {
+function toggleTimer(time, forceHalt=false) {
     if (forceHalt || _timerRunner != null) {
         window.clearInterval(_timerRunner);
         _timerRunner = null;
-        _accumulatedTime = getFixedAcc();
+        _accumulatedTime = time;
         setTimerText();
     }
     else if (_timerRunner == null) {

@@ -16,7 +16,10 @@ let _els = [];
 let _count = 0;
 /** The current split being played */
 let _cur = 0;
+/** URL associated with the currently displayed splits */
 let _url = "";
+/** Whether the splits have already been upload */
+let _hasSent = false;
 
 let hideSplits = function() {
     let div = document.getElementById("splitsDiv");
@@ -39,6 +42,10 @@ let loadedCallback = function(res) {
         let splits = {};
         splits.entries = data.entries;
         initSplits(splits);
+
+        /* Signalize window to center everything */
+        let e = new Event("finishSetup");
+        document.dispatchEvent(e);
     } catch (e) {
         alert(e);
         /* Throw again so it may be captured by the console */
@@ -51,7 +58,7 @@ let loadNewSplits = function(url) {
 }
 
 let saveCurrentSplits = function() {
-    if (!_url) {
+    if (!_url || _hasSent) {
         return;
     }
 
@@ -61,7 +68,7 @@ let saveCurrentSplits = function() {
     for (let i = 0; i < _count; i++) {
         let _el = {
             label: _els[i].label.innerText,
-            time: _els[i].time
+            time: _els[i].tgtTime
         };
         entries.push(_el);
     }
@@ -69,6 +76,7 @@ let saveCurrentSplits = function() {
     splits.entries = entries;
     let data = JSON.stringify(splits);
     sendData(_url, data);
+    _hasSent = true;
 }
 
 function setupSplits(splits) {
@@ -152,6 +160,7 @@ function resetSplits(splits) {
 
     /* Highlight the first split */
     _els[0].div.setAttribute("class", "highlightedBg");
+    _hasSent = false;
 }
 
 let setDiff = function(idx, time, force=false) {
@@ -174,6 +183,7 @@ let setDiff = function(idx, time, force=false) {
     }
     ms = (tmpTime < 60000);
 
+    /* TODO Change color depending on diff */
     obj.diff.innerText = signal + timeToText(tmpTime, ms, autoHide);
 }
 
@@ -183,6 +193,7 @@ let updateSplit = function(idx, time, hideSplit=false) {
     if (isNaN(time)) {
         obj.diff.innerText = "";
         obj.time.innerHTML = "NaN</br>";
+        obj.tgtTime = NaN;
     }
     else {
         let autoHide = true, force = true;
@@ -195,6 +206,7 @@ let updateSplit = function(idx, time, hideSplit=false) {
             setDiff(idx, time, force);
         }
         obj.time.innerHTML = timeToText(time, ms, autoHide) + "</br>";
+        obj.tgtTime = time;
     }
 }
 
@@ -249,4 +261,5 @@ function reloadSplits() {
     }
 
     loadNewSplits(_url);
+    _hasSent = false;
 }
