@@ -243,7 +243,7 @@ function hasMoreSplits() {
     return hasMore;
 }
 
-function resetSplits() {
+function reloadSplits() {
     if (!_url) {
         return;
     }

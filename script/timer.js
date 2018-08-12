@@ -95,6 +95,7 @@ function handleTimerCallback() {
         _accumulatedTime = 0;
         _prevAccumulatedTime = 0;
         setTimerText();
+        reloadSplits();
         break;
     default:
         if (_timerRunner != null && hasMoreSplits()) {
