@@ -130,6 +130,7 @@
             }
         </style>
 
+        <script type="text/javascript" src="/script/conn.js"></script>
         <script type="text/javascript" src="/script/gamepad.js"></script>
         <script type="text/javascript" src="/script/utils.js"></script>
         <script type="text/javascript" src="/script/timer.js"></script>
@@ -422,22 +423,25 @@
              */
             function setupScreen(config) {
                 try {
+                    /* Initialize every value (to avoid errors) */
                     _setLabelLate = false;
-                    configureDisplay(config.display);
-                    setTitle(config.title);
                     if (!("timer" in config)) {
                         config.timer = {};
-                    }
-                    if ("control" in config.timer) {
-                        setGamepadCallback(config.timer.control, timerCallback);
                     }
                     if (!("splits" in config.timer)) {
                         config.timer.splits = {};
                     }
-                    setupSplits(config.timer.splits);
                     if (!("input" in config)) {
                         config.input = {};
                     }
+
+                    /* Initialize everything */
+                    configureDisplay(config.display);
+                    setTitle(config.title);
+                    if ("control" in config.timer) {
+                        setGamepadCallback(config.timer.control, timerCallback);
+                    }
+                    setupSplits(config.timer.splits);
                     configureInput(config.input);
                     centerLeftView(config);
                 } catch (e) {

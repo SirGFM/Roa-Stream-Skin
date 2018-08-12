@@ -7,20 +7,88 @@
  * is represented by the object:
  *   - div: The div that contains every label
  *   - label: The split's label/title/name
- *   - diff: Difference between the best and this run
+ *   - diff: Difference between the split's time and the accumulated time
  *   - time: Target/Achieved time on the split
  *   - tgtTime: The actual (integer) target/achieved time on the split, in ms
  */
 let _els = [];
+/** Number of elements in use (since _els may be recycled) */
+let _count = 0;
 /** The current split being played */
 let _cur = 0;
+let _url = "";
+
+let hideSplits = function() {
+    let div = document.getElementById("splitsDiv");
+
+    div.style.visibility = "hidden";
+    _cur = -1;
+    _count = 0;
+}
+
+let loadedCallback = function(res) {
+    try {
+        let data = JSON.parse(res);
+
+        if (!("entries" in data)) {
+            hideSplits();
+            throw "Invalid response '" + data + "'";
+        }
+        // TODO Setup "best" possible split?
+
+        let splits = {};
+        splits.entries = data.entries;
+        initSplits(splits);
+    } catch (e) {
+        alert(e);
+        /* Throw again so it may be captured by the console */
+        throw e;
+    }
+}
+
+let loadNewSplits = function(url) {
+    getData(url, loadedCallback);
+}
+
+let saveCurrentSplits = function() {
+    if (!_url) {
+        return;
+    }
+
+    let splits = {};
+    let entries = [];
+
+    for (let i = 0; i < _count; i++) {
+        let _el = {
+            label: _els[i].label.innerText,
+            time: _els[i].time
+        };
+        entries.push(_el);
+    }
+
+    splits.entries = entries;
+    let data = JSON.stringify(splits);
+    sendData(_url, data);
+}
 
 function setupSplits(splits) {
+    if ("server" in splits) {
+        _url = splits.server;
+        loadNewSplits(_url);
+    }
+    else if ("entries" in splits) {
+        initSplits(splits);
+    }
+    else {
+        hideSplits();
+    }
+}
+
+let initSplits = function(splits) {
     let div = document.getElementById("splitsDiv");
 
     if (!("entries" in splits)) {
-        div.style.visibility = "hidden";
-        _cur = -1;
+        hideSplits();
         return;
     }
 
@@ -28,7 +96,8 @@ function setupSplits(splits) {
     _cur = 0;
 
     /* Make sure every only objects that will be used are visible */
-    while (_els.length < splits.entries.length) {
+    _count = splits.entries.length;
+    while (_els.length < _count) {
         let obj = {};
 
         obj.div = document.createElement("div");
@@ -71,8 +140,8 @@ function resetSplits(splits) {
         let obj = _els[i];
 
         obj.label.innerText = entry.label;
-        if ("best" in entry) {
-            obj.tgtTime = entry.best
+        if ("time" in entry) {
+            obj.tgtTime = entry.time
         }
         else {
             obj.tgtTime = NaN;
@@ -167,5 +236,17 @@ function setCurrentSplit(time) {
 }
 
 function hasMoreSplits() {
-    return _cur >= 0 && _cur < _els.length;
+    let hasMore = (_cur >= 0 && _cur < _count);
+    if (!hasMore && _cur > 0) {
+        saveCurrentSplits();
+    }
+    return hasMore;
+}
+
+function resetSplits() {
+    if (!_url) {
+        return;
+    }
+
+    loadNewSplits(_url);
 }

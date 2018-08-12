@@ -51,14 +51,15 @@ splits.
 
 | **Name** | **Type** | **Required** | **Description** |
 | --- | --- | --- | --- |
-| `entries` | Array | Array of split entries, describing the game's splits |
+| `server` | String | **Yes** | URL of the game's splits repository |
+| `entries` | Array | **No** | Array of split entries, describing the game's splits. **NOTE**: This is loaded from the server, if specified. |
 
 ### Split entry object
 
 | **Name** | **Type** | **Required** | **Description** |
 | --- | --- | --- | --- |
 | `label` | String | **Yes** | The split's label/title/name |
-| `best` | Integer | **No** | Best time for this split from the start of the game, in milliseconds. If not set, **defaults to NaN** |
+| `time` | Integer | **No** | Best time for this split from the start of the game, in milliseconds. If not set, **defaults to NaN** |
 
 
 ## Input object
