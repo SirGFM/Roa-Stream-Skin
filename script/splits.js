@@ -160,6 +160,11 @@ function resetSplits(splits) {
 
     /* Highlight the first split */
     _els[0].div.setAttribute("class", "highlightedBg");
+    try {
+        _els[0].label.scrollIntoViewIfNeeded();
+    } catch (e) {
+        _els[0].label.scrollIntoView();
+    }
     _hasSent = false;
 }
 
