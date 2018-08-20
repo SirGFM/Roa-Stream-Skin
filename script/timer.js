@@ -3,7 +3,7 @@ const _multiPress = 300;
 // Amount of presses required for a multi-press
 const _resetTimerCount = 3;
 // How long a button must be held to be considered a press
-const _pressDetectionMs = 500;
+const _pressDetectionMs = 400;
 // Last time when the button wasn't pressed (for measuring pressed time)
 let _lastReleased = 0;
 // To detect when the button was last pressed
