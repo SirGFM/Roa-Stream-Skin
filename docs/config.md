@@ -9,6 +9,7 @@ This object controls how the UI is laid out.
 | `strict` | Boolean | **No** | Whether the dimensions should be restricted to the maximum value. **Default: false** |
 | `timer` | Object | **No** | Configures the timer. If not set, default to L2 controlling it. |
 | `input` | Object | **No** | Controls visibility of every input and keyboard configuration. Defaults to gamepad visible. |
+| `clear` | Boolean | **No** | Removes every BG detail, leaving only the timer, splits and gamepad. **Default: false** |
 
 
 ## Display object

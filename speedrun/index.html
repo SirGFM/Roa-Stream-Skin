@@ -414,6 +414,31 @@
 
                 centerDomHorizontal("title", "titleDiv", null, true);
                 centerDomVertical("title", "titleDiv", null, true);
+
+                if ("clear" in config) {
+                    simplifyView();
+                }
+            }
+
+            /**
+             * Hides most of the view, so it becomes as clear as possible
+             */
+            function simplifyView() {
+                let _hideElement = function(name) {
+                    let _el = document.getElementById(name);
+                    _el.style.visibility = "hidden";
+                }
+
+                _hideElement("gameInfo");
+                _hideElement("loadConfigButton");
+                _hideElement("timerDiv");
+                _hideElement("gameView");
+                _hideElement("gameColorkey");
+                _hideElement("titleDiv");
+                _hideElement("title");
+
+                document.body.style.backgroundImage = "none";
+                document.body.style.backgroundColor = "#000000";
             }
 
             /**
