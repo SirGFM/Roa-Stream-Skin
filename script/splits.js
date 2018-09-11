@@ -156,6 +156,7 @@ function resetSplits(splits) {
         }
 
         updateSplit(i, obj.tgtTime, hideSplit);
+        obj.div.removeAttribute("class", "highlightedBg");
     }
 
     /* Highlight the first split */
