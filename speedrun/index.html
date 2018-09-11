@@ -58,6 +58,26 @@
             .centered {
                 text-align: center;
             }
+            .split {
+                font-size: 16px;
+                display: inline-table;
+                line-height: 36px;
+                vertical-align: middle;
+            }
+            .splitLabel {
+                text-align: left;
+                width: 133px;
+                padding-left: 1px;
+            }
+            .splitDiff {
+                text-align: center;
+                width: 40px;
+            }
+            .splitTime {
+                text-align: right;
+                font-size: 24px;
+                width: 65px;
+            }
             .outlined {
                 text-shadow: -1px -1px 0 #000,
                               1px -1px 0 #000,
@@ -83,6 +103,10 @@
                 background-color: #000000;
                 opacity: 0.75;
             }
+            .highlightedBg {
+                background-color: #3f3f74;
+                opacity: 0.75;
+            }
             .gameDiv {
                 outline: 2px solid #639bff;
                 top: 8px;
@@ -99,11 +123,18 @@
                 height: 2px;
                 width: auto;
             }
+            .splitsDiv {
+                overflow: hidden;
+                max-height: 360px;
+                width: 240px;
+            }
         </style>
 
+        <script type="text/javascript" src="/script/conn.js"></script>
         <script type="text/javascript" src="/script/gamepad.js"></script>
         <script type="text/javascript" src="/script/utils.js"></script>
         <script type="text/javascript" src="/script/timer.js"></script>
+        <script type="text/javascript" src="/script/splits.js"></script>
         <script type="text/javascript" src="/script/display.js"></script>
         <script>
             /* How much bigger the title's border should be */
@@ -317,6 +348,7 @@
              * Center the left side of the screen
              */
             function centerLeftView(config) {
+                let splits = document.getElementById("splitsDiv");
                 let gamepad = document.getElementById("gamepad-view");
                 let timer = document.getElementById("timerDiv");
                 let title = document.getElementById("titleDiv");
@@ -325,6 +357,9 @@
 
                 /* Add every object that must be centralized to a list. The
                  * inclusion order defines which object is at the top!! */
+                if (splits.style.visibility == "visible") {
+                    els.push(splits);
+                }
                 els.push(timer);
                 if (config.input.gamepad) {
                     els.push(gamepad);
@@ -357,12 +392,53 @@
                     top += getIntegerAttr(el, "offsetHeight") + dist;
                 }
 
+                /* Adorn the splits border with lines */
+                do {
+                    let l1 = document.getElementById("splitsLine1");
+                    let l2 = document.getElementById("splitsLine2");
+
+                    l1.style.top = splits.offsetTop + 2 + "px";
+                    l1.style.left = splits.offsetLeft + 1 + "px";
+                    l1.style.height = "2px";
+                    l1.style.width = splits.offsetWidth - 2 + "px";
+
+                    l2.style.top = splits.offsetTop + splits.offsetHeight - 4 + "px";
+                    l2.style.left = splits.offsetLeft + 1 + "px";
+                    l2.style.height = "2px";
+                    l2.style.width = splits.offsetWidth - 2 + "px";
+                } while (0);
+
                 /* Center every label within its border */
                 centerDomHorizontal("timer", "timerDiv", null, true);
                 centerDomVertical("timer", "timerDiv", null, true);
 
                 centerDomHorizontal("title", "titleDiv", null, true);
                 centerDomVertical("title", "titleDiv", null, true);
+
+                if ("clear" in config) {
+                    simplifyView();
+                }
+            }
+
+            /**
+             * Hides most of the view, so it becomes as clear as possible
+             */
+            function simplifyView() {
+                let _hideElement = function(name) {
+                    let _el = document.getElementById(name);
+                    _el.style.visibility = "hidden";
+                }
+
+                _hideElement("gameInfo");
+                _hideElement("loadConfigButton");
+                _hideElement("timerDiv");
+                _hideElement("gameView");
+                _hideElement("gameColorkey");
+                _hideElement("titleDiv");
+                _hideElement("title");
+
+                document.body.style.backgroundImage = "none";
+                document.body.style.backgroundColor = "#000000";
             }
 
             /**
@@ -372,17 +448,39 @@
              */
             function setupScreen(config) {
                 try {
+                    /* Initialize every value (to avoid errors) */
                     _setLabelLate = false;
-                    configureDisplay(config.display);
-                    setTitle(config.title);
-                    if ("timer" in config && "control" in config.timer) {
-                        setGamepadCallback(config.timer.control, timerCallback);
+                    if (!("timer" in config)) {
+                        config.timer = {};
+                    }
+                    if (!("splits" in config.timer)) {
+                        config.timer.splits = {};
                     }
                     if (!("input" in config)) {
                         config.input = {};
                     }
+
+                    /* Setup event handler to center everything **after** the
+                     * splits are loaded */
+                    if ("server" in config.timer.splits) {
+                        let cb = function(e) {
+                            document.removeEventListener('finishSetup', cb)
+                            centerLeftView(config);
+                        }
+                        document.addEventListener('finishSetup', cb)
+                    }
+
+                    /* Initialize everything */
+                    configureDisplay(config.display);
+                    setTitle(config.title);
+                    if ("control" in config.timer) {
+                        setGamepadCallback(config.timer.control, timerCallback);
+                    }
                     configureInput(config.input);
-                    centerLeftView(config);
+                    setupSplits(config.timer.splits);
+                    if (!("server" in config.timer.splits)) {
+                        centerLeftView(config);
+                    }
                 } catch (e) {
                     alert(e);
                     /* Throwing makes the exception appear on the console */
@@ -392,6 +490,11 @@
         </script>
     </head>
     <body>
+        <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
+
+        <button id="loadConfigButton" class='fixedRoot img configButton' type="button" style="top: 608px; left: 0px;" onclick="setupLoadFile()"> </button>
+        <input id="configInput" type="file" name="name" style="display: none;" />
+
         <div class='fixedRoot' id='gamepad-view'>
             <img class='fixedChild' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
 
@@ -432,10 +535,8 @@
         </div>
         <label id="title" class="fixedRoot m5x7 outlined centered">Game title</label>
 
-        <label id="gameInfo" class="fixedRoot m5x7 gameInfo darkBg">&nbsp game div info here &nbsp</label>
-
-        <button id="loadConfigButton" class='fixedRoot img configButton' type="button" style="top: 672px; left: 160px;" onclick="setupLoadFile()"> </button>
-        <input id="configInput" type="file" name="name" style="display: none;" />
-
+        <div id="splitsDiv" class="fixedRoot darkBg splitsDiv"></div>
+        <div id="splitsLine1" class="fixedRoot line"></div>
+        <div id="splitsLine2" class="fixedRoot line"></div>
     </body>
 </html>

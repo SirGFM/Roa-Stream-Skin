@@ -9,6 +9,7 @@ This object controls how the UI is laid out.
 | `strict` | Boolean | **No** | Whether the dimensions should be restricted to the maximum value. **Default: false** |
 | `timer` | Object | **No** | Configures the timer. If not set, default to L2 controlling it. |
 | `input` | Object | **No** | Controls visibility of every input and keyboard configuration. Defaults to gamepad visible. |
+| `clear` | Boolean | **No** | Removes every BG detail, leaving only the timer, splits and gamepad. **Default: false** |
 
 
 ## Display object
@@ -43,7 +44,23 @@ splits.
 
 | **Name** | **Type** | **Required** | **Description** |
 | --- | --- | --- | --- |
-| `control` | String | **No** | Which button controls the timer. Only works with the gamepad, for now. |
+| `control` | String | **No** | Which button controls the timer. Only works with the gamepad, for now |
+| `splits` | Object | **No** | Controls display of the game's splits |
+
+
+## Splits object
+
+| **Name** | **Type** | **Required** | **Description** |
+| --- | --- | --- | --- |
+| `server` | String | **Yes** | URL of the game's splits repository |
+| `entries` | Array | **No** | Array of split entries, describing the game's splits. **NOTE**: This is loaded from the server, if specified. |
+
+### Split entry object
+
+| **Name** | **Type** | **Required** | **Description** |
+| --- | --- | --- | --- |
+| `label` | String | **Yes** | The split's label/title/name |
+| `time` | Integer | **No** | Best time for this split from the start of the game, in milliseconds. If not set, **defaults to NaN** |
 
 
 ## Input object

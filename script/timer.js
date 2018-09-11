@@ -3,7 +3,7 @@ const _multiPress = 300;
 // Amount of presses required for a multi-press
 const _resetTimerCount = 3;
 // How long a button must be held to be considered a press
-const _pressDetectionMs = 500;
+const _pressDetectionMs = 400;
 // Last time when the button wasn't pressed (for measuring pressed time)
 let _lastReleased = 0;
 // To detect when the button was last pressed
@@ -11,7 +11,7 @@ let _lastState = false;
 // When the button was actually pressed
 let _pressTime = 0;
 // Whether the press has been handled
-let _handle = false;
+let _handled = false;
 
 // Time when the last callback was called
 let _lastCallback = 0;
@@ -78,19 +78,33 @@ function timerCallback(state) {
 }
 
 /**
+ * Return time with fixed drift from when the button was first pressed.
+ */
+let getFixedAcc = function() {
+    return _accumulatedTime - (Date.now() - _pressTime);
+}
+
+/**
  * Resets the timer on multipresses and (un)pause it on single presses.
  */
 function handleTimerCallback() {
     switch (_multiPressCount) {
     case _resetTimerCount:
         // Reset the time and pauses it
-        toggleTimer(true);
-        _accumulatedTime = 0;
+        toggleTimer(0, true);
         _prevAccumulatedTime = 0;
         setTimerText();
+        reloadSplits();
         break;
     default:
-        toggleTimer();
+        let latest = getFixedAcc();
+        if (_timerRunner != null && hasMoreSplits()) {
+            setCurrentSplit(latest);
+        }
+        /* Stop if the previous split was the last */
+        if (_timerRunner == null || !hasMoreSplits()) {
+            toggleTimer(latest);
+        }
         break;
     }
 }
@@ -98,14 +112,14 @@ function handleTimerCallback() {
 /**
  * Pauses/Unpauses the timer
  *
+ * @param{time} Currently accumulated time
  * @param{forceHalt} Forces the timer to pause
  */
-function toggleTimer(forceHalt) {
+function toggleTimer(time, forceHalt=false) {
     if (forceHalt || _timerRunner != null) {
         window.clearInterval(_timerRunner);
         _timerRunner = null;
-        // Fix drift from when the button was first pressed
-        _accumulatedTime -= Date.now() - _pressTime;
+        _accumulatedTime = time;
         setTimerText();
     }
     else if (_timerRunner == null) {
@@ -123,25 +137,44 @@ function updateTimer() {
 
     _accumulatedTime = _prevAccumulatedTime + (now - _lastStartTime);
     setTimerText();
+    /* Update the split, if set */
+    updateCurrentDiff(_accumulatedTime);
 }
 
 /**
  * Updates the timer label with the currently accumulated timer.
  */
 function setTimerText() {
-    let ms = "" + (_accumulatedTime % 1000);
-    let s = "" + Math.floor((_accumulatedTime / 1000) % 60);
-    let min = "" + Math.floor((_accumulatedTime / 60000) % 60);
-    let hour = "" + Math.floor((_accumulatedTime / 3600000) % 24);
-
     if (_timerLabel) {
-        let txt = "";
-
-        txt += hour.padStart(2, "0") + ":";
-        txt += min.padStart(2, "0") + ":";
-        txt += s.padStart(2, "0") + ".";
-        txt += ms.padStart(3, "0");
-
-        _timerLabel.innerText = txt;
+        _timerLabel.innerText = timeToText(_accumulatedTime);
     }
+}
+
+/**
+ * Converts a given time to text.
+ *
+ * @param{time} The integer time to be converted to string.
+ * @param{showMs} Whether the text should contain milliseconds.
+ * @param{autoHideHour} Whether units should be hidden, unless greater than 0.
+ */
+function timeToText(time, showMs=true, autoHide=false) {
+    let ms = time % 1000;
+    let s = Math.floor((time / 1000) % 60);
+    let min = Math.floor((time / 60000) % 60);
+    let hour = Math.floor((time / 3600000) % 24);
+
+    let txt = "";
+
+    if (!autoHide || hour > 0) {
+        txt += ("" + hour).padStart(2, "0") + ":";
+    }
+    if (!autoHide || hour > 0 || min > 0) {
+        txt += ("" + min).padStart(2, "0") + ":";
+    }
+    txt += ("" + s).padStart(2, "0");
+    if (showMs) {
+        txt += "." + ("" + ms).padStart(3, "0");
+    }
+
+    return txt;
 }
