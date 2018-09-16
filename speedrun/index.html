@@ -334,14 +334,20 @@
              */
             function configureInput(input) {
                 let gamepad = document.getElementById("gamepad-view");
+                let nespad = document.getElementById("nespad-view");
 
-                if (!("gamepad" in input) || !input.gamepad) {
-                    input.gamepad = false;
-                    gamepad.style.visibility = "hidden";
+                let setPad = function(pad, name) {
+                    if (!(name in input) || !input[name]) {
+                        input[name] = false;
+                        pad.style.visibility = "hidden";
+                    }
+                    else {
+                        pad.style.visibility = "visible";
+                    }
                 }
-                else {
-                    gamepad.style.visibility = "visible";
-                }
+
+                setPad(gamepad, "gamepad");
+                setPad(nespad, "nespad");
             }
 
             /**
@@ -518,6 +524,21 @@
 
             <img id='gamepad_lstick' class='fixedChild' style='width: 18px; height: 18px; left: 36px; top: 80px;' src='/img/gamepad/x360/stick.png'/>
             <img id='gamepad_rstick' class='fixedChild' style='width: 18px; height: 18px; left: 126px; top: 112px;' src='/img/gamepad/x360/stick.png'/>
+        </div>
+
+        <div class='fixedRoot' id='nespad-view'>
+            <img class='fixedChild' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
+
+            <img class='fixedChild' style='width: 196px; left: 14px; top: 10px;' src='/img/gamepad/nes/released_buttons.png' />
+
+            <img id='nespad_left' class='fixedChild' style='width: 30px; height: 28px; left: 18px; top: 74px; visibility: hidden;' src='/img/gamepad/x360/pressed/left.png'/>
+            <img id='nespad_up' class='fixedChild' style='width: 28px; height: 30px; left: 42px; top: 50px; visibility: hidden;' src='/img/gamepad/x360/pressed/up.png'/>
+            <img id='nespad_down' class='fixedChild' style='width: 28px; height: 30px; left: 42px; top: 96px; visibility: hidden;' src='/img/gamepad/x360/pressed/down.png'/>
+            <img id='nespad_right' class='fixedChild' style='width: 30px; height: 28px; left: 64px; top: 74px; visibility: hidden;' src='/img/gamepad/x360/pressed/right.png'/>
+            <img id='nespad_select' class='fixedChild' style='width: 30px; height: 8px; left: 104px; top: 52px; visibility: hidden;' src='/img/gamepad/x360/pressed/select.png'/>
+            <img id='nespad_start' class='fixedChild' style='width: 30px; height: 8px; left: 146px; top: 52px; visibility: hidden;' src='/img/gamepad/x360/pressed/start.png'/>
+            <img id='nespad_b' class='fixedChild' style='width: 34px; height: 34px; left: 122px; top: 92px; visibility: hidden;' src='/img/gamepad/x360/pressed/b.png'/>
+            <img id='nespad_a' class='fixedChild' style='width: 34px; height: 34px; left: 166px; top: 92px; visibility: hidden;' src='/img/gamepad/x360/pressed/a.png'/>
         </div>
 
         <div id="timerDiv" class="fixedRoot darkBg">
