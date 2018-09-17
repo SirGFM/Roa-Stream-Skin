@@ -6,6 +6,9 @@
  * pressed key and cleared bits are released keys.
  */
 
+/** How long to wait until a connection timeouts during its connection */
+const connTimeout = 10 * 60 * 1000;
+
 /**
  * Update the images stored in ctx, based on the big-endian bit-mask in msg.
  *
@@ -49,6 +52,15 @@ let updateView = function(ctx) {
 }
 
 /**
+ * Checks whether the connection was successfull or whether it timedout.
+ *
+ * @param{ctx} A context returned by setupNewKeypad
+ */
+let checkTimeout = function(ctx) {
+    ctx.close();
+}
+
+/**
  * Starts listening to a keylogger, and setup the images it uses for buttons.
  *
  * @param{keys} An array of images, sequenced as the bits from the sender.
@@ -67,16 +79,17 @@ function setupNewKeypad(keys, address) {
     ctx.isCleaning = false;
     ctx.addr = address;
     ctx.cb = null;
-    ctx.didStart = false;
+    ctx.openCb = null;
+    ctx.ws = null;
 
     /* Setup helper functions for the websocket */
     ctx.open = function(ev) {
         console.log("Opened connection to: " + address);
-        ctx.didStart = true;
+        clearInterval(ctx.openCb);
+        ctx.openCb = null;
     }
     ctx.close = function(ev) {
         console.log("Closed connection with: " + address);
-        ctx.didStart = false;
         if (!ctx.isCleaning) {
             /* Connection closed because of an error, restart it! */
             // TODO Check if from a close and, if not, restart the connection
@@ -88,12 +101,18 @@ function setupNewKeypad(keys, address) {
     ctx.err = function(ev) {
         console.log("Error sending/receiving message!");
     }
-    ctx.clean = function() {
+    ctx.close = function() {
         ctx.isCleaning = true;
-        ctx.ws.close();
+        if (ctx.ws != null) {
+            ctx.ws.close();
+        }
         if (ctx.cb != null) {
             clearInterval(ctx.cb);
             ctx.cb = null;
+        }
+        if (ctx.openCb != null) {
+            clearInterval(ctx.openCb);
+            ctx.openCb = null;
         }
     }
     ctx.start = function() {
@@ -106,7 +125,7 @@ function setupNewKeypad(keys, address) {
             ctx.ws.addEventListener("message", ctx.recv);
             ctx.ws.addEventListener("error", ctx.err);
         } catch (e) {
-            ctx.clean();
+            ctx.close();
             throw e;
         }
     }
@@ -116,8 +135,8 @@ function setupNewKeypad(keys, address) {
     ctx.cb = setInterval(updateView, 1000 / 20, ctx);
 
     /* Start the connection */
+    ctx.openCb = setTimeout(checkTimeout, connTimeout, ctx);
     ctx.start();
-    // TODO If the connection didn't open after a while (10 seconds?), throw an error!
 
     return ctx;
 }
