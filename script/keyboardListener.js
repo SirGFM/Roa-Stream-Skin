@@ -45,10 +45,15 @@ let _updateView = function(ctx, msg) {
  * @param{ctx} A context returned by setupNewKeypad
  */
 let updateView = function(ctx) {
-    while (ctx.buf.length > 0) {
-        let data = ctx.buf.shift();
-        _updateView(ctx, data);
+    if (ctx.buf.length == 0) {
+        return;
     }
+    /* Grab only the latest data, as it overrides everything else */
+    let data = ctx.buf.pop();
+    while (ctx.buf.length > 0) {
+        ctx.buf.pop();
+    }
+    _updateView(ctx, data);
 }
 
 /**
