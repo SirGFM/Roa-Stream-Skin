@@ -144,6 +144,10 @@
             const _winHeight = 720;
             /* Whether the vertical position of the label should be set at a later time */
             let _setLabelLate = false;
+            /* Nespad context, if any */
+            let _nespadCtx = null;
+            /* Array of keys used by the nespad */
+            let _nespadKeys = [];
 
             /**
              * Bootstrap, after the page is loaded
@@ -225,6 +229,16 @@
 
                 initialTimerSetup();
                 setupDefaultGamepad();
+
+                /* Get every key used by the nespad (in the correct order) */
+                _nespadKeys.push(document.getElementById("nespad_left"));
+                _nespadKeys.push(document.getElementById("nespad_right"));
+                _nespadKeys.push(document.getElementById("nespad_up"));
+                _nespadKeys.push(document.getElementById("nespad_down"));
+                _nespadKeys.push(document.getElementById("nespad_b"));
+                _nespadKeys.push(document.getElementById("nespad_a"));
+                _nespadKeys.push(document.getElementById("nespad_select"));
+                _nespadKeys.push(document.getElementById("nespad_start"));
 
                 /* Initial setup from query string */
                 setupScreen(parseArgs());
@@ -349,6 +363,16 @@
 
                 setPad(gamepad, "gamepad");
                 setPad(nespad, "nespad");
+
+                if (("nespad" in input) && input.nespad) {
+                    if (_nespadCtx != null) {
+                        _nespadCtx.close();
+                    }
+                    _nespadCtx = setupNewKeypad(_nespadKeys, input.nespad);
+                }
+                else {
+                    input.nespad = null;
+                }
             }
 
             /**
@@ -357,6 +381,7 @@
             function centerLeftView(config) {
                 let splits = document.getElementById("splitsDiv");
                 let gamepad = document.getElementById("gamepad-view");
+                let nespad = document.getElementById("nespad-view");
                 let timer = document.getElementById("timerDiv");
                 let title = document.getElementById("titleDiv");
                 let els = [];
@@ -370,6 +395,9 @@
                 els.push(timer);
                 if (config.input.gamepad) {
                     els.push(gamepad);
+                }
+                if (config.input.nespad) {
+                    els.push(nespad);
                 }
                 if (_setLabelLate) {
                     els.push(title);
