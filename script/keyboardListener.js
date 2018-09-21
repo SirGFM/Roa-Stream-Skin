@@ -88,22 +88,22 @@ function setupNewKeypad(keys, address) {
     ctx.ws = null;
 
     /* Setup helper functions for the websocket */
-    ctx.open = function(ev) {
+    ctx.openEv = function(ev) {
         console.log("Opened connection to: " + address);
         clearInterval(ctx.openCb);
         ctx.openCb = null;
     }
-    ctx.close = function(ev) {
+    ctx.closeEv = function(ev) {
         console.log("Closed connection with: " + address);
         if (!ctx.isCleaning) {
             /* Connection closed because of an error, restart it! */
             // TODO Check if from a close and, if not, restart the connection
         }
     }
-    ctx.recv = function(ev) {
+    ctx.recvEv = function(ev) {
         ctx.buf.push(ev.data);
     }
-    ctx.err = function(ev) {
+    ctx.errEv = function(ev) {
         console.log("Error sending/receiving message!");
     }
     ctx.close = function() {
@@ -125,10 +125,10 @@ function setupNewKeypad(keys, address) {
         ctx.ws = new WebSocket(address);
         /* Setup all event handlers */
         try {
-            ctx.ws.addEventListener("open", ctx.open);
-            ctx.ws.addEventListener("close", ctx.close);
-            ctx.ws.addEventListener("message", ctx.recv);
-            ctx.ws.addEventListener("error", ctx.err);
+            ctx.ws.addEventListener("open", ctx.openEv);
+            ctx.ws.addEventListener("close", ctx.closeEv);
+            ctx.ws.addEventListener("message", ctx.recvEv);
+            ctx.ws.addEventListener("error", ctx.errEv);
         } catch (e) {
             ctx.close();
             throw e;
