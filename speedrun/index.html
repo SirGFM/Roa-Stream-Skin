@@ -483,6 +483,12 @@
              */
             function setupScreen(config) {
                 try {
+                    /* Clean up previous context */
+                    if (_nespadCtx != null) {
+                        _nespadCtx.close();
+                        _nespadCtx = null;
+                    }
+
                     /* Initialize every value (to avoid errors) */
                     _setLabelLate = false;
                     if (!("timer" in config)) {
