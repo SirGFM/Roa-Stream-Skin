@@ -97,7 +97,8 @@ function setupNewKeypad(keys, address) {
         console.log("Closed connection with: " + address);
         if (!ctx.isCleaning) {
             /* Connection closed because of an error, restart it! */
-            // TODO Check if from a close and, if not, restart the connection
+            ctx.openCb = setTimeout(checkTimeout, connTimeout, ctx);
+            ctx.start();
         }
     }
     ctx.recvEv = function(ev) {
