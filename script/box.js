@@ -18,7 +18,7 @@ let _getBoxName = function(content) {
 let _updateShadow = function(_box) {
 }
 
-function setBoxDimensions(content, innerWidth, innerHeight) {
+function setBoxDimensions(content, innerWidth, innerHeight, padContent=true) {
 }
 
 function createBox(content, innerWidth, innerHeight, darkBG=true, hasShadow=true, padContent=true) {
@@ -65,8 +65,15 @@ function createBox(content, innerWidth, innerHeight, darkBG=true, hasShadow=true
         _addChild('bottomInnerOutline').style.backgroundColor = _darkOutline;
     }
 
+    setBoxDimensions(content, innerWidth, innerHeight, padContent);
+
     if (_isNew)
         document.body.insertAdjacentElement('beforeend', _box)
+
+    if (!hasShadow) {
+        document.getElementById(_id + 'leftOutterShadow').style.visibility = 'hidden';
+        document.getElementById(_id + 'bottomOutterShadow').style.visibility = 'hidden';
+    }
 }
 
 function getContentPosition(content) {
