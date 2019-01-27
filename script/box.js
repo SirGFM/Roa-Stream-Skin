@@ -1,9 +1,9 @@
 const _boxPrefix = '__auto__';
 const _boxSuffix = '__box__';
-const _contentPadding = 2;
-const _borderSize = 3;
-const _lineSize = 1;
-const _shadowSize = 1;
+const _contentPadding = 4;
+const _borderSize = 6;
+const _lineSize = 2;
+const _shadowSize = 2;
 const _lightOutline = '#ffffff';
 const _darkOutline  = '#cbdbfc';
 const _innerShadow  = '#3f3f74';
@@ -35,20 +35,22 @@ let _updateChild = function(content, childId, x, y, width, height) {
 let _getDimension = function(innerDimension, padContent) {
     let _ret = innerDimension + 2 *_borderSize + 4 * _lineSize;
     if (padContent)
-        return _ret + _contentPadding;
+        return _ret + 2 * _contentPadding;
     return _ret;
 }
 
-function setBoxDimensions(content, innerWidth, innerHeight, padContent=true) {
-    let _boxWidth = _getDimension(innerWidth, padContent);
-    let _boxHeight = _getDimension(innerHeight, padContent);
+/* Changes a box dimensions */
+function setBoxDimensions(content, innerWidth, innerHeight) {
+    let _padContent = _boxCache[_getBoxId(content)].padded;
+    let _boxWidth = _getDimension(innerWidth, _padContent);
+    let _boxHeight = _getDimension(innerHeight, _padContent);
     let _contentWidth = innerWidth;
     let _contentHeight = innerHeight;
     let _contentPos = 2 * _lineSize + _borderSize;
 
-    if (padContent) {
-        _contentWidth += _contentPadding;
-        _contentHeight += _contentPadding;
+    if (_padContent) {
+        _contentWidth += 2 * _contentPadding;
+        _contentHeight += 2 * _contentPadding;
     }
 
     _updateChild(content,
@@ -167,13 +169,19 @@ function setBoxDimensions(content, innerWidth, innerHeight, padContent=true) {
                  _lineSize);
 }
 
-function createBox(content, innerWidth, innerHeight, darkBG=true, hasShadow=true, padContent=true) {
+/**
+ * Create a new box for a given element
+ */
+function createBox(content, innerWidth, innerHeight, anchor=true, darkBG=true, hasShadow=true, padContent=true) {
     let _id = _getBoxId(content);
     let _box = _boxCache[_id];
     let _isNew = (!_box);
     if (_isNew) {
         _box = document.createElement('div');
-        _boxCache[_id] = _box;
+        _boxCache[_id] = {
+            'box': _box,
+            'padded': padContent
+        };
 
         let _addChild = function(childId) {
             let _child = document.createElement('div');
@@ -192,7 +200,8 @@ function createBox(content, innerWidth, innerHeight, darkBG=true, hasShadow=true
         _addChild('leftOutterShadow').style.backgroundColor = _outterShadow;
         _addChild('bottomOutterShadow').style.backgroundColor = _outterShadow;
         _addChild('background').style.backgroundColor = _bgColor;
-        // XXX: Cotent should go here
+        if (anchor)
+            _box.appendChild(content);
         _addChild('leftBorder').style.backgroundColor = _border;
         _addChild('rightBorder').style.backgroundColor = _border;
         _addChild('topBorder').style.backgroundColor = _border;
@@ -222,5 +231,29 @@ function createBox(content, innerWidth, innerHeight, darkBG=true, hasShadow=true
     }
 }
 
-function getContentPosition(content) {
+/** Set a box's position */
+function setBoxPosition(content, x, y) {
+    let _box = _boxCache[_getBoxId(content)].box;
+    _box.style.left = x + 'px';
+    _box.style.top = y + 'px';
+    return _box;
+}
+
+/** Retrieve the position of the element within a box. NOTE: The position is the same for both axis) */
+function getBoxContentPosition(content) {
+    let _box = _boxCache[_getBoxId(content)];
+    let _pos = 2 * _lineSize + _borderSize;
+    if (_box.padded)
+        _pos += _contentPadding;
+    return _pos;
+}
+
+/** Retrieves an object with 'x' and 'y' fields with the absolute position of the element within the box */
+function getBoxContentAbsolutePosition(content) {
+    let _box = _boxCache[_getBoxId(content)].box;
+    let _pos = getContentPosition(content);
+    return {
+        'x': _pos + _box.offsetLeft,
+        'y': _pos + _box.offsetTop
+    };
 }
