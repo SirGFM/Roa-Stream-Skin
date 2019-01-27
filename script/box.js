@@ -18,7 +18,7 @@ let _getBoxName = function(content) {
 let _updateShadow = function(_box) {
 }
 
-function setBoxDimensions(content, innerWidth, innerHeight, padContent=true) {
+function setBoxDimensions(content, innerWidth, innerHeight) {
 }
 
 function createBox(content, innerWidth, innerHeight, darkBG=true, hasShadow=true, padContent=true) {
@@ -64,8 +64,6 @@ function createBox(content, innerWidth, innerHeight, darkBG=true, hasShadow=true
         _addChild('topInnerOutline').style.backgroundColor = _lightOutline;
         _addChild('bottomInnerOutline').style.backgroundColor = _darkOutline;
     }
-
-    setBoxDimensions(content, innerWidth, innerHeight, padContent);
 
     if (_isNew)
         document.body.insertAdjacentElement('beforeend', _box)
