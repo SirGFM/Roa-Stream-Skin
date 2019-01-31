@@ -10,12 +10,15 @@ const _defViewTop = 8;
 const _leftViewWidth = 240;
 /** Right view width (game area) */
 const _rightViewWidth = 1040;
-/** Max border width, considering a 16:9 resolution (max multi == 64) */
+/** Max border, considering a 16:9 resolution (max multi == 64) */
+const _16x9MaxWidth = 1024;
+const _16x9MaxHeight = 576;
+/** Max border, considering a 4:3 resolution (max multi == 240) */
+const _4x3MaxWidth = 960;
+const _4x3MaxHeight = 720;
+/** Max border, considering an unrestricted resolution */
 const _maxWidth = 1024;
-/** Max border height, considering a 16:9 resolution (max multi == 64) */
-const _maxHeight = 576;
-/* By how much the game should increase in either direction. Starts as 10% */
-let _gameViewInc = 1.1;
+const _maxHeight = 720;
 /* Width of the label's border */
 const _outlineWidth = 0.2;
 
@@ -58,32 +61,6 @@ function getValidDimension(value) {
 }
 
 /**
- * Check whether a given dimension is greater than the maximum allowed.
- *
- * @param{value} The tentative dimension.
- * @param{max} The maximum value for that dimension.
- * @return{Boolean} Whether the dimension is within the valid limits.
- */
-let checkDimension = function(value, max) {
-    return getValidDimension(value * _gameViewInc) <= max;
-}
-
-/**
- * Crop the given dimension so it fits within the limits.
- *
- * @param{value} The tentative dimension.
- * @param{max} The maximum value for that dimension.
- * @return{Int} The calculated dimension.
- */
-let cropDimension = function(value, max) {
-    if (!checkDimension(value, max)) {
-        return getValidDimension(max / _gameViewInc);
-    }
-
-    return getValidDimension(value);
-}
-
-/**
  * Retrieves the dimensions of the display as an object with attributes:
  *   - border
  *       - width
@@ -99,11 +76,9 @@ let cropDimension = function(value, max) {
  * @param{display} A 'display' object. Look at docs/config.md for more info.
  * @return An object as described above
  */
-let getDimensions = function(display) {
-    let w = 0, h = 0;
-
-    /* Reset the increase */
-    _gameViewInc = 1.1;
+let _setDimensions = function(display) {
+    let borderW = 0, borderH = 0, maxW = 0, maxH = 0, w = 0, h = 0;
+    let padContent = true;
 
     /* 0 - Sanitize display size */
     if (display.type == "console") {
@@ -119,49 +94,72 @@ let getDimensions = function(display) {
         throw "Invalid display object. Check the docs!";
     }
 
-    /* Game border is usually 10% bigger than the game (from
-     * _gameViewInc). If the view is too big, the border shrinks
-     * into half its increase. */
-    if (!checkDimension(w, _maxWidth) || !checkDimension(h, _maxHeight)) {
-        _gameViewInc = 1.0 + (_gameViewInc - 1.0) * 0.5;
+    if (Math.floor(w / 16) == Math.floor(h / 9)) {
+        maxW = _16x9MaxWidth;
+        maxH = _16x9MaxHeight;
     }
-
-    /* Correct the game view (if needed) */
-    if (("strict" in display) && display.strict) {
-        w = cropDimension(w, _maxWidth);
-        h = cropDimension(h, _maxHeight);
+    else if (Math.floor(w / 4) == Math.floor(h / 3)) {
+        maxW = _4x3MaxWidth;
+        maxH = _4x3MaxHeight;
     }
     else {
-        w = getValidDimension(w);
-        h = getValidDimension(h);
+        maxW = _maxWidth;
+        maxH = _maxHeight;
     }
 
-    ret = {border: {}, game: {}};
+    /* Check whether the dimensions fit within the border */
+    do {
+        borderW = getBoxDimension(w, padContent);
+        borderH = getBoxDimension(h, padContent);
+        if (borderW > maxW || borderH > maxH) {
+            w = w * 0.9;
+            h = h * 0.9;
+            continue;
+        }
+    } while (false);
+
+    /* Correct the game view (if needed) */
+    w = getValidDimension(w);
+    h = getValidDimension(h);
+
+    /* Create (or resize) the game's view */
+    let view = document.getElementById('gameView');
+    if (!view) {
+        view = document.createElement('div');
+        view.id = 'gameView';
+    }
 
     /* Center within the window, unless it would overlap the left area */
-    ret.border.width = getValidDimension(w * _gameViewInc);
-    ret.border.height = getValidDimension(h * _gameViewInc);
-    ret.border.x = (windowWidth - ret.border.width) * 0.5;
-    ret.border.y = _defViewTop;
-
-    if (ret.border.height >= _maxHeight) {
-        ret.border.y = (windowHeight - ret.border.height) * 0.5;
+    let borderX = (windowWidth - borderW) * 0.5;
+    let borderY = _defViewTop;
+    if (borderH >= maxH) {
+        borderY = (windowHeight - borderH) * 0.5;
+        getValidDimension(borderY);
     }
-    if (ret.border.x <= _leftViewWidth) {
-        ret.border.x = _leftViewWidth + (_rightViewWidth - ret.border.width) * 0.5;
+    if (borderX <= _leftViewWidth) {
+        borderX = _leftViewWidth + (_rightViewWidth - borderW) * 0.5;
     }
-    ret.border.y = getValidDimension(ret.border.y);
-    ret.border.x = getValidDimension(ret.border.x);
+    borderY = getValidDimension(borderY);
+    borderX = getValidDimension(borderX);
 
-    /* Center (globally) the game within the view */
-    ret.game.width = w;
-    ret.game.height = h;
-    ret.game.x = ret.border.x + (ret.border.width - ret.game.width) * 0.5;
-    ret.game.x = getValidDimension(ret.game.x);
-    ret.game.y = ret.border.y + (ret.border.height - ret.game.height) * 0.5;
-    ret.game.y = getValidDimension(ret.game.y);
+    createBox(view, w, h, anchor=true, darkBG=true, hasShadow=true, padContent);
+    setBoxPosition(view, borderX, borderY);
+    pos = getBoxContentAbsolutePosition(view);
 
-    return ret;
+    return {
+        border: {
+            x: borderX,
+            y: borderY,
+            width: borderW,
+            height: borderH
+        },
+        game: {
+            x: pos.x,
+            y: pos.y,
+            width: w,
+            height: h
+        }
+    };
 }
 
 /**
@@ -172,32 +170,14 @@ let getDimensions = function(display) {
  * @return An object as described above
  */
 function configureDisplay(argsDisplay) {
-    let view = document.getElementById("gameView");
-    let game = document.getElementById("gameColorkey");
-
-    _display = getDimensions(argsDisplay);
-
-    view.style.width = _display.border.width + "px";
-    view.style.height = _display.border.height + "px";
-    view.style.left = _display.border.x + "px";
-    view.style.top = _display.border.y + "px";
-
-    /* Calculate and set the border's outline */
-    let val = (_display.border.width - _display.game.width) * 0.5;
-    val = Math.floor(val * _outlineWidth);
-    view.style._outlineWidth = val + "px";
-
-    game.style.width = _display.game.width + "px";
-    game.style.height = _display.game.height + "px";
-    game.style.left = _display.game.x + "px";
-    game.style.top = _display.game.y + "px";
+    _display = _setDimensions(argsDisplay);
 
     /* Write the game info into the screen */
     let str = "&nbsp game position:&nbsp</br>&nbsp&nbsp{";
-    str += " x: "+gameColorkey.offsetLeft;
-    str += ", y: "+gameColorkey.offsetTop;
-    str += ",&nbsp</br>&nbsp&nbsp w: "+gameColorkey.offsetWidth;
-    str += ", h: "+gameColorkey.offsetHeight;
+    str += " x: "+_display.game.x;
+    str += ", y: "+_display.game.y;
+    str += ",&nbsp</br>&nbsp&nbsp w: "+_display.game.width;
+    str += ", h: "+_display.game.height;
     str += "&nbsp}&nbsp";
     document.getElementById("gameInfo").innerHTML = str;
 }

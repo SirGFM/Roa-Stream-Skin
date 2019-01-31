@@ -32,7 +32,7 @@ let _updateChild = function(content, childId, x, y, width, height) {
     return _child;
 }
 
-let _getDimension = function(innerDimension, padContent) {
+function getBoxDimension(innerDimension, padContent) {
     let _ret = innerDimension + 2 *_borderSize + 4 * _lineSize;
     if (padContent)
         return _ret + 2 * _contentPadding;
@@ -42,8 +42,8 @@ let _getDimension = function(innerDimension, padContent) {
 /* Changes a box dimensions */
 function setBoxDimensions(content, innerWidth, innerHeight) {
     let _padContent = _boxCache[_getBoxId(content)].padded;
-    let _boxWidth = _getDimension(innerWidth, _padContent);
-    let _boxHeight = _getDimension(innerHeight, _padContent);
+    let _boxWidth = getBoxDimension(innerWidth, _padContent);
+    let _boxHeight = getBoxDimension(innerHeight, _padContent);
     let _contentWidth = innerWidth;
     let _contentHeight = innerHeight;
     let _contentPos = 2 * _lineSize + _borderSize;
@@ -251,7 +251,7 @@ function getBoxContentPosition(content) {
 /** Retrieves an object with 'x' and 'y' fields with the absolute position of the element within the box */
 function getBoxContentAbsolutePosition(content) {
     let _box = _boxCache[_getBoxId(content)].box;
-    let _pos = getContentPosition(content);
+    let _pos = getBoxContentPosition(content);
     return {
         'x': _pos + _box.offsetLeft,
         'y': _pos + _box.offsetTop
