@@ -38,14 +38,8 @@ function setupGetLabelLength(classList) {
     _whiteSpaceLen = getLabelLength(" ");
 }
 
-/**
- * Compute the length of a given string.
- *
- * @param{txt} The string
- * @param{addTrailingSpace} Whether a single whitespace should be added at the end.
- */
-function getLabelLength(txt, addTrailingSpace) {
-    let width = 0;
+let _getLabelDimension = function(txt, addTrailingSpace, dimension) {
+    let val = 0;
     let label = document.getElementById("label-width-calculator");
 
     if (!label) {
@@ -54,13 +48,27 @@ function getLabelLength(txt, addTrailingSpace) {
 
     label.innerText = txt;
     if (addTrailingSpace) {
-        width = _whiteSpaceLen;
+        val = _whiteSpaceLen;
     }
-    width += label.clientWidth;
+    val += label[dimension];
 
     label.innerText = "";
 
-    return width;
+    return val;
+}
+
+/**
+ * Compute the length of a given string.
+ *
+ * @param{txt} The string
+ * @param{addTrailingSpace} Whether a single whitespace should be added at the end.
+ */
+function getLabelLength(txt, addTrailingSpace) {
+    return _getLabelDimension(txt, addTrailingSpace, "clientWidth");
+}
+
+function getLabelHeight(txt) {
+    return _getLabelDimension(txt, false, "clientHeight");
 }
 
 /**
