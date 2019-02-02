@@ -362,6 +362,37 @@
                 }
             }
 
+            function calculateNonSplitHeight(config) {
+                let gamepad = document.getElementById("gamepad-view");
+                let nespad = document.getElementById("nespad-view");
+                let els = [];
+                let maxH = 0;
+
+                els.push('timer');
+                if (config.input.gamepad) {
+                    els.push(gamepad);
+                }
+                if (config.input.nespad) {
+                    els.push(nespad);
+                }
+                if (_setLabelLate) {
+                    els.push('title');
+                }
+
+                /* Calculate the accumulated height of every element, and the
+                 * distance between elements. */
+                for (let i in els) {
+                    if (typeof(els[i]) === 'string')
+                        maxH += getLineHeight(els[i]);
+                    else
+                        maxH += getIntegerAttr(els[i], "offsetHeight");
+                }
+                maxH = getValidDimension(maxH * 1.1);
+
+                /* Calculate the initial pos and distance between objects */
+                return _winHeight - maxH;
+            }
+
             /**
              * Center the left side of the screen
              */
@@ -504,7 +535,9 @@
                         setGamepadCallback(config.timer.control, timerCallback);
                     }
                     configureInput(config.input);
-                    setupSplits(config.timer.splits);
+                    let _maxSplitW = 0;
+                    let _maxSplitH = getValidDimension(calculateNonSplitHeight(config) * 0.95);
+                    setupSplits(config.timer.splits, _maxSplitW, _maxSplitH);
                     if (!("server" in config.timer.splits)) {
                         centerLeftView(config);
                     }
