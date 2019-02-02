@@ -1,6 +1,11 @@
 /**
  * Handle setting up the splits view, as well as configuring the times etc.
  */
+{
+
+const _minDiffWidth = 40;
+const _minTimeWidth = 65;
+const _minSplitWidth = _minDiffWidth + _minTimeWidth;
 
 /**
  * Group of elements inside 'splitsDiv', used to display the split. Each group
@@ -20,6 +25,12 @@ let _cur = 0;
 let _url = "";
 /** Whether the splits have already been upload */
 let _hasSent = false;
+/** Maximum height for the splits border */
+let _maxHeight = 720;
+/** Set the width of the split fields */
+let _labelWidth;
+let _diffWidth;
+let _textWidth;
 
 let hideSplits = function() {
     let div = document.getElementById("splitsDiv");
@@ -79,7 +90,8 @@ let saveCurrentSplits = function() {
     _hasSent = true;
 }
 
-function setupSplits(splits) {
+function setupSplits(splits, maxWidth, maxHeight=720) {
+    _maxHeight = maxHeight;
     if ("server" in splits) {
         _url = splits.server;
         loadNewSplits(_url);
@@ -94,13 +106,44 @@ function setupSplits(splits) {
 
 let initSplits = function(splits) {
     let div = document.getElementById("splitsDiv");
+    if (!div) {
+        div = document.createElement('div');
+        div.id = 'splitsDiv';
+        div.style.overflow = 'hidden';
+        /** Create a box with dummy dimensions */
+        createBox(div, 240, 360, anchor=true, darkBG=true, hasShadow=true, padContent=true);
+    }
 
     if (!("entries" in splits)) {
         hideSplits();
         return;
     }
 
-    div.style.visibility = "visible";
+    /** Update the box dimension based on the number of splits */
+    let _labelClass = 'm5x7 split splitLabel outlined';
+    setupGetLabelLength(_labelClass);
+    let _elHeight = getLabelHeight('TALL LETTERS I');
+
+    let _h = _elHeight * splits.entries.length;
+    while (getBoxDimension(_h, true) > _maxHeight)
+        _h = getValidDimension(_h - _elHeight);
+    let _w = 0;
+    for (let _el in splits.entries) {
+        let _elWidth = getLabelWidth(splits.entries[_el]);
+        if (_elWidth > _w)
+            _w = _elWidth;
+    }
+    _w = getValidDimension(_w + _minSplitWidth * 1.2);
+    while (getBoxDimension(_w, true) > _maxWidth)
+        _w = getValidDimension(_w * 0.95);
+
+    createBox(div, _w, _h, anchor=true, darkBG=true, hasShadow=true, padContent=true);
+
+    /* Calculate the width of each field */
+    let _mult = 0.15;
+    while (getValidDimension(_w * _mult) < _minTimeWidth)
+        _mult += 0.05;
+
     _cur = 0;
 
     /* Make sure every only objects that will be used are visible */
@@ -109,8 +152,8 @@ let initSplits = function(splits) {
         let obj = {};
 
         obj.div = document.createElement("div");
-        obj.label = document.createElement("label");
-        obj.label.setAttribute("class", "m5x7 split splitLabel outlined");
+        addLine('__auto__split_'+_els.length, '', _labelClass, maxBorderWidth=133, isBoxed=false);
+        obj.label = getLineLabel('__auto__split_'+_els.length);
         obj.diff = document.createElement("label");
         obj.diff.setAttribute("class", "m5x7 split splitDiff outlined");
         obj.time = document.createElement("label");
@@ -268,4 +311,6 @@ function reloadSplits() {
 
     loadNewSplits(_url);
     _hasSent = false;
+}
+
 }

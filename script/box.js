@@ -13,8 +13,12 @@ const _outterShadow = '#222034';
 
 let _boxCache = {};
 
+let _getBoxIdById = function(id) {
+    return _boxPrefix + id + _boxSuffix;
+}
+
 let _getBoxId = function(content) {
-    return _boxPrefix + content.id + _boxSuffix;
+    return _getBoxIdById(content.id);
 }
 
 let _getChildId = function(content, childId) {
@@ -268,6 +272,15 @@ function getBoxContentAbsolutePosition(content) {
 }
 
 function hideBox(content) {
-    let _box = _boxCache[_getBoxId(content)].box;
+    return hideBoxById(content.id);
+}
+
+function hideBoxById(id) {
+    let _box = _boxCache[_getBoxIdById(content.id)].box;
     _box.style.visibility = 'hidden';
+}
+
+function isBoxVisibleById(id) {
+    let _box = _boxCache[_getBoxIdById(content.id)].box;
+    return _box.style.visibility == 'visible';
 }
