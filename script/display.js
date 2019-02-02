@@ -199,3 +199,12 @@ function getLeftView() {
     }
     return _leftViewWidth;
 }
+
+function getViewInfo() {
+    return {
+        'x': _display.border.x,
+        'y': _display.border.y,
+        'width': _display.border.width,
+        'height': _display.border.height
+    };
+}
