@@ -239,6 +239,15 @@ function setBoxPosition(content, x, y) {
     return _box;
 }
 
+/** Get a box's position */
+function getBoxPosition(content) {
+    let _box = _boxCache[_getBoxId(content)].box;
+    return {
+        'x': _box.offsetLeft,
+        'y': _box.offsetTop
+    }
+}
+
 /** Retrieve the position of the element within a box. NOTE: The position is the same for both axis) */
 function getBoxContentPosition(content) {
     let _box = _boxCache[_getBoxId(content)];
