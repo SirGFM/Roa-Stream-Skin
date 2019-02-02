@@ -35,7 +35,7 @@ function setupGetLabelLength(classList) {
     getLabelLength("fix coner case");
 
     // Store the length of a single whitespace
-    _whiteSpaceLen = getLabelLength(" ");
+    _whiteSpaceLen = getLabelLength("A A") - 2 * getLabelLength("A");
 }
 
 let _getLabelDimension = function(txt, addTrailingSpace, dimension) {
