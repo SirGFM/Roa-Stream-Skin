@@ -51,10 +51,17 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
     if (_doScroll) {
         let _animName = _textPrefix + id + _textSuffix + _animSuffix;
         let _realW = getLabelLength(txt, true);
-        if (!_cssCache[_animName]) {
+        if (!_cssCache[_animName] || _cssCache[_animName].w != _realW) {
             let _index = document.styleSheets[0].rules.length;
+            if (_cssCache[_animName]) {
+                _index = _cssCache[_animName].i;
+                document.styleSheets[0].deleteRule(_index);
+            }
             document.styleSheets[0].insertRule('@keyframes ' + _animName + ' { from { text-indent: 0px; } to { text-indent: -' + _realW + 'px; } }', _index)
-            _cssCache[_animName] = document.styleSheets[0].rules[_index];
+            _cssCache[_animName] = {
+                'i': _index,
+                'w': _realW
+            };
         }
 
         let _cW = getLabelLength('O');
@@ -68,5 +75,16 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
         _text.style.width = _w+'px';
         _text.style.textOverflow = 'clip';
         _text.style.whiteSpace = 'nowrap';
+    }
+    else {
+        _text.style.animationDuration = undefined;
+        _text.style.animationName = undefined;
+        _text.style.animationIterationCount = undefined;
+        _text.style.animationTimingFunction = undefined;
+
+        _text.innerText = txt;
+        _text.style.width = 'auto';
+        _text.style.textOverflow = undefined;
+        _text.style.whiteSpace = undefined;
     }
 }
