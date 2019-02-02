@@ -8,8 +8,8 @@ let _baseKeyFrames = null;
 let _textCache = {};
 let _cssCache = {};
 
-let _getTextId = function(content) {
-    return _textPrefix + content.id + _textSuffix;
+let _getTextId = function(id) {
+    return _textPrefix + id + _textSuffix;
 }
 
 function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
