@@ -1,11 +1,12 @@
 const _textPrefix = '__auto__';
 const _textSuffix = '__text__';
 const _animSuffix = '__anim__';
-const _charSpeed = 0.75;
+const _charSpeed = 3;
 
 let _baseKeyFrames = null;
 
 let _textCache = {};
+let _cssCache = {};
 
 let _getTextId = function(content) {
     return _textPrefix + content.id + _textSuffix;
@@ -31,7 +32,8 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
         _contentWf = function(_w) { return getBoxDimension(_w, padContent=true); };
     let _doScroll = (_contentWf(_w) > maxBorderWidth);
     while (_contentWf(_w) > maxBorderWidth) {
-        _w *= 0.95;
+        _w = Math.floor(_w * 0.95);
+        _w = _w + (_w % 2);
     }
 
     let _h = getLabelHeight(txt);
@@ -47,26 +49,16 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
         document.body.insertAdjacentElement('beforeend', _text);
 
     if (_doScroll) {
-        if (!_baseKeyFrames) {
-            for (let i in document.styleSheets[0].rules) {
-                if (document.styleSheets[0].rules[i].name == 'baseKeyFrame') {
-                    _baseKeyFrames = document.styleSheets[0].rules[i];
-                    break;
-                }
-            }
-        }
-        document.styleSheets[0].addRule();
-        // TODO Properly populate the new rule
-        let _newRule = document.styleSheets[0].rules[document.styleSheets[0].rules.length - 1];
-        for (let attr in _baseKeyFrames) {
-            _newRule[attr] = _baseKeyFrames[attr];
-        }
-        _newRule.cssRules[1].style.textIndent = '-' + _w + 'px';
         let _animName = _textPrefix + id + _textSuffix + _animSuffix;
-        _newRule.name = _animName;
+        let _realW = getLabelLength(txt, true);
+        if (!_cssCache[_animName]) {
+            let _index = document.styleSheets[0].rules.length;
+            document.styleSheets[0].insertRule('@keyframes ' + _animName + ' { from { text-indent: 0px; } to { text-indent: -' + _realW + 'px; } }', _index)
+            _cssCache[_animName] = document.styleSheets[0].rules[_index];
+        }
 
         let _cW = getLabelLength('O');
-        let _t = _w / (_cW * _charSpeed);
+        let _t = _realW / (_cW * _charSpeed);
         _text.style.animationDuration = _t+'s';
         _text.style.animationName = _animName;
         _text.style.animationIterationCount = 'infinite';
