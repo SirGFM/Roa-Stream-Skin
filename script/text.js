@@ -142,3 +142,9 @@ function getLineLabel(id) {
     let _text = _textCache[_id];
     return _text.text;
 }
+
+function hideLine(id) {
+    let _id = _getTextId(id);
+    let _text = _textCache[_id];
+    hideBox(_text.text);
+}

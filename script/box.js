@@ -266,3 +266,8 @@ function getBoxContentAbsolutePosition(content) {
         'y': _pos + _box.offsetTop
     };
 }
+
+function hideBox(content) {
+    let _box = _boxCache[_getBoxId(content)].box;
+    _box.style.visibility = 'hidden';
+}
