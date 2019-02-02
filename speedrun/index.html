@@ -135,6 +135,7 @@
         <script type="text/javascript" src="/script/gamepad.js"></script>
         <script type="text/javascript" src="/script/keyboardListener.js"></script>
         <script type="text/javascript" src="/script/utils.js"></script>
+        <script type="text/javascript" src="/script/text.js"></script>
         <script type="text/javascript" src="/script/timer.js"></script>
         <script type="text/javascript" src="/script/splits.js"></script>
         <script type="text/javascript" src="/script/display.js"></script>
@@ -251,40 +252,42 @@
              * @param{title} The game's title
              */
             function setTitle(title) {
-                let el = document.getElementById("title");
-                let border = document.getElementById("titleDiv");
-                let h = 0, w = 0, x = 0, y = 0;
+                let x, y = 0, w, h;
 
-                el.innerText = title;
-                w = getValidDimension(getLabelLength(title) * _borderInc);
-                h = getValidDimension(el.offsetHeight * _borderInc);
+                /* Add a dummy title to calculate its position */
+                addLine('title', title, 'fixedChild m5x7 outlined centered', maxBorderWidth=1024, isBoxed=true);
+
+                w = getLineWidth('title');
+                h = getLineHeight('title');
 
                 if (h >= getUnderView()) {
                     /* Place it on the left side of the screen */
-                    x = getValidDimension((getLeftView() - w) * 0.5);
+                    if (getLeftView() >= w)
+                        x = getValidDimension((getLeftView() - w) * 0.5);
+                    else {
+                        x = 0;
+                        addLine('title', title, 'fixedChild m5x7 outlined centered', maxBorderWidth=getLeftView(), isBoxed=true);
+                    }
+
                     /* Vertical position will be set later */
                     _setLabelLate = true;
                 }
                 else {
-                    let view = document.getElementById("gameView");
-
+                    let _view = getViewInfo();
                     /* Center it bellow the game view */
-                    x = getValidDimension((view.offsetWidth - w) * 0.5);
-                    x += view.offsetLeft;
+                    x = getValidDimension((_view.width - w) * 0.5);
+                    x += _view.x;
 
                     /* Place it in the upper quarter of the bottom of the screen */
-                    y = view.offsetTop + view.offsetHeight;
+                    y = _view.y + _view.height;
                     y = getValidDimension(y + getUnderView() * 0.25);
+                    if (y + h > document.body.clientHeight) {
+                        y = _view.y + _view.height;
+                        y = getValidDimension(y + (getUnderView() - h) * 0.5);
+                    }
                 }
 
-                border.style.top = y + "px";
-                border.style.left = x + "px";
-                border.style.width = w + "px";
-                border.style.height = h + "px";
-
-                /* Adorn the title with lines */
-                positionDivLine("titleLine1", "top", 2, -2)
-                positionDivLine("titleLine2", "bottom", 2, -2)
+                setLinePosition('title', x, y);
             }
 
             /**
@@ -384,7 +387,7 @@
                 let gamepad = document.getElementById("gamepad-view");
                 let nespad = document.getElementById("nespad-view");
                 let timer = document.getElementById("timerDiv");
-                let title = document.getElementById("titleDiv");
+                let title = document.getElementById(getLineId('title'));
                 let els = [];
                 let maxH = 0, top = 0, dist = 0;
 
@@ -447,9 +450,6 @@
                 /* Center every label within its border */
                 centerDomHorizontal("timer", "timerDiv", null, true);
                 centerDomVertical("timer", "timerDiv", null, true);
-
-                centerDomHorizontal("title", "titleDiv", null, true);
-                centerDomVertical("title", "titleDiv", null, true);
 
                 if ("clear" in config) {
                     simplifyView();
@@ -582,12 +582,6 @@
             <div id="timerLine2" class="fixedChild line"></div>
         </div>
         <label id="timer" class="fixedRoot m5x7 outlined centered">00:00:00.000</label>
-
-        <div id="titleDiv" class="fixedRoot darkBg">
-            <div id="titleLine1" class="fixedChild line"></div>
-            <div id="titleLine2" class="fixedChild line"></div>
-        </div>
-        <label id="title" class="fixedRoot m5x7 outlined centered">Game title</label>
 
         <div id="splitsDiv" class="fixedRoot darkBg splitsDiv"></div>
         <div id="splitsLine1" class="fixedRoot line"></div>
