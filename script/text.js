@@ -137,6 +137,8 @@ function setLinePosition(id, x, y) {
     }
 }
 
-function getLineId(id) {
-    return _getTextId(id);
+function getLineLabel(id) {
+    let _id = _getTextId(id);
+    let _text = _textCache[_id];
+    return _text.text;
 }
