@@ -18,10 +18,15 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
     let _isNew = (!_text);
     if (_isNew) {
         _text = document.createElement('label');
-        _textCache[_id] = _text;
+        _textCache[_id] = {
+            'text': _text,
+            'boxed': isBoxed
+        };
         _text.id = id;
         _text.className = classList;
     }
+    else
+        _text = _text.text;
 
     setupGetLabelLength(classList);
     let _w = getLabelLength(txt);
@@ -77,14 +82,61 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
         _text.style.whiteSpace = 'nowrap';
     }
     else {
-        _text.style.animationDuration = undefined;
-        _text.style.animationName = undefined;
-        _text.style.animationIterationCount = undefined;
-        _text.style.animationTimingFunction = undefined;
+        _text.style.animationDuration = null;
+        _text.style.animationName = null;
+        _text.style.animationIterationCount = null;
+        _text.style.animationTimingFunction = null;
 
         _text.innerText = txt;
-        _text.style.width = 'auto';
-        _text.style.textOverflow = undefined;
-        _text.style.whiteSpace = undefined;
+        _text.style.width = _w + 2 + 'px';
+        _text.style.textOverflow = null;
+        _text.style.whiteSpace = null;
     }
+}
+
+let _getLineDimension = function(id, dimension) {
+    let _id = _getTextId(id);
+    let _text = _textCache[_id];
+
+    let _val = _text.text[dimension];
+    if (_text.boxed)
+        return getBoxDimension(_val, true);
+    return _val;
+}
+
+function getLineHeight(id) {
+    return _getLineDimension(id, 'clientHeight');
+}
+
+function getLineWidth(id) {
+    return _getLineDimension(id, 'clientWidth');
+}
+
+function getLinePosition(id) {
+    let _id = _getTextId(id);
+    let _text = _textCache[_id];
+
+    if (_text.boxed)
+        return getBoxPosition(_text.text, true);
+    else
+        return {
+            'x': _text.text.offsetLeft,
+            'y': _text.text.offsetTop
+        };
+}
+
+function setLinePosition(id, x, y) {
+    let _id = _getTextId(id);
+    let _text = _textCache[_id];
+
+    if (_text.boxed)
+        setBoxPosition(_text.text, x, y);
+    else {
+        _text.text.style.left = x + 'px';
+        _text.text.style.top = y + 'px';
+    }
+}
+
+function getLineId(id) {
+    return _getTextId(id);
 }
