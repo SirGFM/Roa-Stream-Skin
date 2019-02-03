@@ -392,7 +392,6 @@
              * Center the left side of the screen
              */
             function centerLeftView(config) {
-                let splits = document.getElementById("splitsDiv");
                 let gamepad = document.getElementById("gamepad-view");
                 let nespad = document.getElementById("nespad-view");
                 let els = [];
@@ -400,9 +399,9 @@
 
                 /* Add every object that must be centralized to a list. The
                  * inclusion order defines which object is at the top!! */
-                //if (splits.style.visibility == "visible") {
-                //    els.push(splits);
-                //}
+                if (isSplitsVisible()) {
+                    maxH = getBoxHeightById('splitsDiv');
+                }
                 els.push('timer');
                 if (config.input.gamepad) {
                     els.push(gamepad);
@@ -422,13 +421,25 @@
                     else
                         maxH += getIntegerAttr(els[i], "offsetHeight");
                 }
-                dist = getValidDimension((maxH * 0.1) / (els.length - 1));
-                maxH = getValidDimension(maxH * 1.1);
+                let div = els.length;
+                if (isSplitsVisible())
+                    div++;
+                dist = getValidDimension((_winHeight - maxH) / div);
+                if (dist > 24)
+                    dist = 24;
+                maxH += dist * (div - 1);
 
                 /* Calculate the initial pos and distance between objects */
                 top = getValidDimension((_winHeight - maxH) * 0.5);
 
                 /* Set each object's position */
+                if (isSplitsVisible()) {
+                    let left = getBoxWidthById('splitsDiv');
+                    left = getValidDimension((getLeftView() - left) * 0.5);
+                    setBoxPositionById('splitsDiv', left, top);
+                    top += getBoxHeightById('splitsDiv') + dist;
+                }
+
                 for (let i in els) {
                     let el = els[i];
                     if (typeof(el) === 'string') {

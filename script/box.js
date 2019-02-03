@@ -237,7 +237,11 @@ function createBox(content, innerWidth, innerHeight, anchor=true, darkBG=true, h
 
 /** Set a box's position */
 function setBoxPosition(content, x, y) {
-    let _box = _boxCache[_getBoxId(content)].box;
+    return setBoxPositionById(content.id, x, y)
+}
+
+function setBoxPositionById(id, x, y) {
+    let _box = _boxCache[_getBoxIdById(id)].box;
     _box.style.left = x + 'px';
     _box.style.top = y + 'px';
     return _box;
@@ -276,11 +280,30 @@ function hideBox(content) {
 }
 
 function hideBoxById(id) {
-    let _box = _boxCache[_getBoxIdById(content.id)].box;
+    let _box = _boxCache[_getBoxIdById(id)].box;
     _box.style.visibility = 'hidden';
 }
 
+function showBox(content) {
+    showBoxById(content.id);
+}
+
+function showBoxById(id) {
+    let _box = _boxCache[_getBoxIdById(id)].box;
+    _box.style.visibility = 'visible';
+}
+
 function isBoxVisibleById(id) {
-    let _box = _boxCache[_getBoxIdById(content.id)].box;
+    let _box = _boxCache[_getBoxIdById(id)].box;
     return _box.style.visibility == 'visible';
+}
+
+function getBoxHeightById(id) {
+    let _box = _boxCache[_getBoxIdById(id)].box;
+    return _box.scrollHeight;
+}
+
+function getBoxWidthById(id) {
+    let _box = _boxCache[_getBoxIdById(id)].box;
+    return _box.scrollWidth;
 }

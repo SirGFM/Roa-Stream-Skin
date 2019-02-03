@@ -37,6 +37,13 @@ let hideSplits = function() {
     if (_els.length == 0)
         return;
     hideBoxById('splitsDiv');
+    for (let i in _els) {
+        let obj = _els[i];
+
+        obj.div.style.visibility = "hidden";
+    }
+    _cur = -1;
+    _count = 0;
 }
 
 let loadedCallback = function(res) {
@@ -139,6 +146,7 @@ let initSplits = function(splits) {
         _w = getValidDimension(_w * 0.95);
 
     createBox(div, _w, _h, anchor=true, darkBG=true, hasShadow=true, padContent=true);
+    showBox(div);
     div.style.maxHeight = _h + 'px';
     div.style.width = _w + 'px';
     div.style.height = 'auto';
@@ -320,6 +328,12 @@ function reloadSplits() {
 
     loadNewSplits(_url);
     _hasSent = false;
+}
+
+function isSplitsVisible() {
+    if (_els.length == 0)
+        return false;
+    return isBoxVisibleById('splitsDiv');
 }
 
 }
