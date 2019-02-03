@@ -60,7 +60,7 @@
             }
             .split {
                 font-size: 16px;
-                display: inline-table;
+                display: inline-block;
                 line-height: 36px;
                 vertical-align: middle;
             }
@@ -122,11 +122,6 @@
                 background-color: #639bff;
                 height: 2px;
                 width: auto;
-            }
-            .splitsDiv {
-                overflow: hidden;
-                max-height: 360px;
-                width: 240px;
             }
         </style>
 
@@ -405,9 +400,9 @@
 
                 /* Add every object that must be centralized to a list. The
                  * inclusion order defines which object is at the top!! */
-                if (splits.style.visibility == "visible") {
-                    els.push(splits);
-                }
+                //if (splits.style.visibility == "visible") {
+                //    els.push(splits);
+                //}
                 els.push('timer');
                 if (config.input.gamepad) {
                     els.push(gamepad);
@@ -452,22 +447,6 @@
 
                     top += getIntegerAttr(el, "offsetHeight") + dist;
                 }
-
-                /* Adorn the splits border with lines */
-                do {
-                    let l1 = document.getElementById("splitsLine1");
-                    let l2 = document.getElementById("splitsLine2");
-
-                    l1.style.top = splits.offsetTop + 2 + "px";
-                    l1.style.left = splits.offsetLeft + 1 + "px";
-                    l1.style.height = "2px";
-                    l1.style.width = splits.offsetWidth - 2 + "px";
-
-                    l2.style.top = splits.offsetTop + splits.offsetHeight - 4 + "px";
-                    l2.style.left = splits.offsetLeft + 1 + "px";
-                    l2.style.height = "2px";
-                    l2.style.width = splits.offsetWidth - 2 + "px";
-                } while (0);
 
                 if ("clear" in config) {
                     simplifyView();
@@ -535,7 +514,7 @@
                         setGamepadCallback(config.timer.control, timerCallback);
                     }
                     configureInput(config.input);
-                    let _maxSplitW = 0;
+                    let _maxSplitW = getValidDimension(getLeftView() * 0.8);
                     let _maxSplitH = getValidDimension(calculateNonSplitHeight(config) * 0.95);
                     setupSplits(config.timer.splits, _maxSplitW, _maxSplitH);
                     if (!("server" in config.timer.splits)) {
@@ -594,9 +573,5 @@
             <img id='nespad_b' class='fixedChild' style='width: 34px; height: 34px; left: 122px; top: 92px; visibility: hidden;' src='/img/gamepad/nes/pressed/b.png'/>
             <img id='nespad_a' class='fixedChild' style='width: 34px; height: 34px; left: 166px; top: 92px; visibility: hidden;' src='/img/gamepad/nes/pressed/a.png'/>
         </div>
-
-        <div id="splitsDiv" class="fixedRoot darkBg splitsDiv"></div>
-        <div id="splitsLine1" class="fixedRoot line"></div>
-        <div id="splitsLine2" class="fixedRoot line"></div>
     </body>
 </html>

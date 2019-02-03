@@ -12,7 +12,7 @@ let _getTextId = function(id) {
     return _textPrefix + id + _textSuffix;
 }
 
-function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
+function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true, fixedLen=false) {
     let _id = _getTextId(id);
     let _text = _textCache[_id];
     let _isNew = (!_text);
@@ -92,6 +92,9 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true) {
         _text.style.textOverflow = null;
         _text.style.whiteSpace = null;
     }
+
+    if (fixedLen)
+        _text.style.width = maxBorderWidth + 'px';
 }
 
 let _getLineDimension = function(id, dimension) {
