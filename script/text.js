@@ -55,7 +55,7 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true, fixedLen
 
     if (_doScroll) {
         let _animName = _textPrefix + id + _textSuffix + _animSuffix;
-        let _realW = getLabelLength(txt, true);
+        let _realW = getLabelLength(txt+' --', true);
         if (!_cssCache[_animName] || _cssCache[_animName].w != _realW) {
             let _index = document.styleSheets[0].rules.length;
             if (_cssCache[_animName]) {
@@ -76,7 +76,7 @@ function addLine(id, txt, classList, maxBorderWidth=1024, isBoxed=true, fixedLen
         _text.style.animationIterationCount = 'infinite';
         _text.style.animationTimingFunction = 'linear';
 
-        _text.innerText = txt+' '+txt;
+        _text.innerText = txt+' -- '+txt;
         _text.style.width = _w+'px';
         _text.style.textOverflow = 'clip';
         _text.style.whiteSpace = 'nowrap';
