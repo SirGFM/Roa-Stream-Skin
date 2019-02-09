@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> GFM's Gaming Arena </title>
+        <meta charset="utf-8" name="viewport" content="width=1280, height=720, initial-scale=1" />
+        <meta name="keywords" content="stream,skin" />
+        <meta name="description" content="GFM's streaming skin" />
+        <meta name="author" content="Gabriel Francisco Mandaji" />
+
+        <style>
+            @font-face {
+                /** m5x7 by Daniel Linssen. Get it from https://managore.itch.io/m5x7. */
+                font-family: "m5x7";
+                src: url(/res/m5x7.ttf) format("truetype");
+            }
+            html, body {
+                width: 1280px;
+                height: 720px;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background-color: #222034;
+                background-image: url('/img/bg.png');
+                color: #cbdbfc;
+                font-size: 1em;
+            }
+            img {
+                /** Basic nearest-neighbour behaviour.
+                 * Source: http://stackoverflow.com/questions/14068103/disable-antialising-when-scaling-images */
+                image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+                image-rendering: -moz-crisp-edges;          /* Firefox                        */
+                image-rendering: -o-crisp-edges;            /* Opera                          */
+                image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+                image-rendering: pixelated;                 /* Chrome */
+                image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+                -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+            }
+            .configButton {
+                background-image: url('/img/config/default.png');
+                width: 32px;
+                height: 32px;
+                border: 0;
+            }
+            .configButton:hover {
+                background-image: url('/img/config/hover.png');
+            }
+            .configButton:active {
+                background-image: url('/img/config/press.png');
+            }
+            .m5x7 {
+                font-family: "m5x7";
+                font-size: 48px;
+                display: block;
+                overflow: hidden;
+                word-break: break-all;
+            }
+            .centered {
+                text-align: center;
+            }
+            .split {
+                font-size: 16px;
+                display: inline-block;
+                line-height: 36px;
+                vertical-align: middle;
+            }
+            .splitLabel {
+                text-align: left;
+                width: 133px;
+                padding-left: 1px;
+            }
+            .splitDiff {
+                text-align: center;
+                width: 40px;
+            }
+            .splitTime {
+                text-align: right;
+                font-size: 24px;
+                width: 65px;
+            }
+            .outlined {
+                text-shadow: -1px -1px 0 #000,
+                              1px -1px 0 #000,
+                             -1px  1px 0 #000,
+                              1px  1px 0 #000;  
+            }
+            .gameInfo {
+                font-size: 24px;
+                bottom: 0;
+                left: 0;
+            }
+            .fixedRoot {
+                /* Fixed position (unchanged by viewport size). Can be used as
+                 * parent for other elements */
+                position: fixed;
+            }
+            .fixedChild {
+                /* Fixed position (unchanged by viewport size), but contained
+                 * and relative to its closest parent. */
+                position: absolute;
+            }
+            .darkBg {
+                background-color: #000000;
+                opacity: 0.75;
+            }
+            .highlightedBg {
+                background-color: #3f3f74;
+                opacity: 0.75;
+            }
+            .gameDiv {
+                outline: 2px solid #639bff;
+                top: 8px;
+            }
+            .gameColorkey {
+                background-color: #000000;
+                /* The color bellow is useful for testing... */
+                /** background-color: #ff00ff; /**/
+                opacity: 1;
+                outline: 4px solid #000000;
+            }
+            .line {
+                background-color: #639bff;
+                height: 2px;
+                width: auto;
+            }
+        </style>
+
+        <script type="text/javascript" src="/new-script/box.js"></script>
+        <script type="text/javascript" src="/new-script/conn.js"></script>
+        <script type="text/javascript" src="/new-script/display.js"></script>
+        <script type="text/javascript" src="/new-script/splits.js"></script>
+        <script type="text/javascript" src="/new-script/utils.js"></script>
+
+        <script type="text/javascript" src="/new-script/speedrun.js"></script>
+        <!-- <script type="text/javascript" src="/script/gamepad.js"></script> -->
+        <!-- <script type="text/javascript" src="/script/keyboardListener.js"></script> -->
+        <!-- <script type="text/javascript" src="/script/text.js"></script> -->
+        <!-- <script type="text/javascript" src="/script/timer.js"></script> -->
+    </head>
+
+    <body>
+    </body>
+</html>
