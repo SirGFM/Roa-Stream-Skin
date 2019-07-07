@@ -521,9 +521,14 @@
                     /* Initialize everything */
                     configureDisplay(config.display);
                     setTitle(config.title);
-                    if ("control" in config.timer) {
+                    if ("control" in config.timer)
                         gamepad.setTimerEventButton(config.timer.control);
-                    }
+                    else
+                        gamepad.setTimerEventButton(null);
+                    if ("keyControl" in config.timer)
+                        keyboard.setTimerEventKey(config.timer.keyControl);
+                    else
+                        keyboard.setTimerEventKey(null);
                     configureInput(config.input);
                     let _maxSplitW = getValidDimension(getLeftView() * 0.8);
                     let _maxSplitH = getValidDimension(calculateNonSplitHeight(config) * 0.95);

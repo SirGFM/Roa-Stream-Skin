@@ -44,7 +44,8 @@ splits.
 
 | **Name** | **Type** | **Required** | **Description** |
 | --- | --- | --- | --- |
-| `control` | String | **No** | Which button controls the timer. Only works with the gamepad, for now |
+| `control` | String | **No** | Which gamepad button controls the timer. |
+| `keyControl` | String | **No** | Which keyboard keymask controls the timer. Either as hexstring ("0x...") or a bitmask ("0b...") |
 | `splits` | Object | **No** | Controls display of the game's splits |
 
 

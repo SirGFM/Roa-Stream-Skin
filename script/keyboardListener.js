@@ -24,6 +24,7 @@ let _updateView = function(ctx, msg) {
 
         on = (d << 4 * i) | on;
     }
+    keyboard.dispatchTimerEvent(on);
 
     /* Set keys on the bitmask as visible and the others as hidden */
     for (let i in ctx.keys) {
@@ -146,3 +147,54 @@ function setupNewKeypad(keys, address) {
 
     return ctx;
 }
+
+let keyboard = function() {
+    let _keyMask = 0;
+    let _lastState = false;
+
+    return {
+        /**
+         * Try to dispatch a timer control event, based on a key combination.
+         *
+         * @param{mask} Bitmask of pressed keys.
+         */
+        dispatchTimerEvent: function(mask) {
+            if (!_keyMask)
+                return; /* Do nothing */
+            let state = (mask & _keyMask) == _keyMask;
+            if (_lastState == state) {
+                if (state)
+                    document.dispatchEvent(new Event('timer-pressed'));
+            }
+            else if (state)
+                document.dispatchEvent(new Event('timer-onpress'));
+            else
+                document.dispatchEvent(new Event('timer-onrelease'));
+            _lastState = state;
+        },
+        /**
+         * Configure a key combination to generate the following events:
+         *   - 'timer-onpress'
+         *   - 'timer-pressed'
+         *   - 'timer-onrelease'
+         *
+         * @param{keyMask} Key bitmask that shall trigger the events, as either
+         *                 a hexstring ("0x...') or a bitmask string ('0b...').
+         */
+        setTimerEventKey: function(keyMask) {
+            if (!keyMask)
+                _keyMask = 0;
+            else if (keyMask.startsWith('0b')) {
+                _keyMask = 0;
+                keyMask = keyMask.substring(2);
+                for (let i in keyMask) {
+                    let d = parseInt(keyMask[i], 16);
+                    _keyMask = (_keyMask << 1) | d;
+                }
+            }
+            else
+                _keyMask = parseInt(keyMask);
+            _lastState = false;
+        }
+    };
+}()
