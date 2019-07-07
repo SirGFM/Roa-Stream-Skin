@@ -34,17 +34,23 @@ let _display;
 let getConsoleDimension = function(name) {
     switch (name.toLowerCase()) {
     case "nes":
-        return [598, 470];
+        return [879, 695];
     case "gb":
     case "gbc":
-        return [480, 432];
+        return [640, 576];
     case "megadrive":
     case "md":
-        return [640, 480];
+        return [960, 695];
+    case "mastersystem":
+    case "sms":
+        return [879, 599];
+    case "gamegear":
+    case "gg":
+        return [640, 599];
     case "gba":
-        return [720, 480];
+        return [879, 672];
     case "snes":
-        return [768, 672];
+        return [879, 672];
     default:
         throw "Invalid display mode. Check the docs!";
     }
