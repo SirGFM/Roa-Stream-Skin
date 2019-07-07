@@ -99,6 +99,8 @@ let speedrun = function() {
         let _layout = {};
 
         _layout.game = display.getBorderDimensions(config);
+
+        /* TODO: Continue here */
     }
 
     /* Setup the bootstrap */

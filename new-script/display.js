@@ -151,7 +151,7 @@ let display = function() {
                 borderY = utils.getValidDimension(borderY);
             }
 
-            /* Check whether the view would overlap the left aread and fix that */
+            /* Check whether the view would overlap the left area and fix that */
             if (borderX <= _leftViewWidth) {
                 borderX = _leftViewWidth + (_rightViewWidth - borderW) * 0.5;
             }

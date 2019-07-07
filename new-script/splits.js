@@ -17,7 +17,8 @@ let splits = function() {
          * @return Whether the current configuration has splits configured.
          */
         hasSplits: function(config) {
-            return 'timer' in config && 'splits' in config.timer;
+            return 'timer' in config && 'splits' in config.timer
+                   && ('server' in config.timer.splits || 'entries' in config.timer.splits);
         },
 
         /**
