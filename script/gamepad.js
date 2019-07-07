@@ -1,3 +1,6 @@
+const xbox_id = 'Xbox 360 Controller';
+const ps1_id = 'Twin USB Joystick';
+
 let _interval = null;
 let _gamepadObjects = null;
 let _fps = 30;
