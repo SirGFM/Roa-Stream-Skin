@@ -522,7 +522,7 @@
                     configureDisplay(config.display);
                     setTitle(config.title);
                     if ("control" in config.timer) {
-                        setGamepadCallback(config.timer.control, timerCallback);
+                        gamepad.setTimerEventButton(config.timer.control);
                     }
                     configureInput(config.input);
                     let _maxSplitW = getValidDimension(getLeftView() * 0.8);

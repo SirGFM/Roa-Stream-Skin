@@ -1,22 +1,6 @@
-// Maximum time allowed between multi-presses
-const _multiPress = 300;
-// Amount of presses required for a multi-press
-const _resetTimerCount = 3;
-// How long a button must be held to be considered a press
-const _pressDetectionMs = 400;
-// Last time when the button wasn't pressed (for measuring pressed time)
-let _lastReleased = 0;
-// To detect when the button was last pressed
-let _lastState = false;
 // When the button was actually pressed
 let _pressTime = 0;
-// Whether the press has been handled
-let _handled = false;
 
-// Time when the last callback was called
-let _lastCallback = 0;
-// Amount of presses since the last single press
-let _multiPressCount = 0;
 // Delayed handle call (if any)
 let _pressHandle = null;
 
@@ -41,72 +25,10 @@ function setupTimer(element) {
 }
 
 /**
- * Callback used to trigger reseting, pausing and unpausing the timer.
- *
- * To solve issues caused by miss-pressing the button, it ignores presses
- * shorter _pressDetectionMs.
- */
-function timerCallback(state) {
-    let _now = Date.now()
-
-    if (state) {
-        if (!_lastState) {
-            // Detect whether it's a multipress or not
-            if (_now - _lastCallback > _multiPress) {
-                _multiPressCount = 1;
-                _pressTime = Date.now();
-            }
-            else {
-                _multiPressCount++;
-            }
-
-            _lastCallback = _now;
-        }
-
-        // Check whether the button has been held for long enough
-        if (!_handled && Date.now() - _lastReleased >= _pressDetectionMs) {
-            // Do actually take an action based on the button press.
-            handleTimerCallback();
-            _handled = true;
-        }
-    }
-    else {
-        _lastReleased = Date.now();
-        _handled = false;
-    }
-    _lastState = state;
-}
-
-/**
  * Return time with fixed drift from when the button was first pressed.
  */
 let getFixedAcc = function() {
-    return _accumulatedTime - (Date.now() - _pressTime);
-}
-
-/**
- * Resets the timer on multipresses and (un)pause it on single presses.
- */
-function handleTimerCallback() {
-    switch (_multiPressCount) {
-    case _resetTimerCount:
-        // Reset the time and pauses it
-        toggleTimer(0, true);
-        _prevAccumulatedTime = 0;
-        setTimerText();
-        reloadSplits();
-        break;
-    default:
-        let latest = getFixedAcc();
-        if (_timerRunner != null && hasMoreSplits()) {
-            setCurrentSplit(latest);
-        }
-        /* Stop if the previous split was the last */
-        if (_timerRunner == null || !hasMoreSplits()) {
-            toggleTimer(latest);
-        }
-        break;
-    }
+    return _accumulatedTime - (timer.now() - _pressTime);
 }
 
 /**
@@ -133,9 +55,7 @@ function toggleTimer(time, forceHalt=false) {
  * Update the running timer
  */
 function updateTimer() {
-    let now = Date.now();
-
-    _accumulatedTime = _prevAccumulatedTime + (now - _lastStartTime);
+    _accumulatedTime = _prevAccumulatedTime + (timer.now() - _lastStartTime);
     setTimerText();
     /* Update the split, if set */
     updateCurrentDiff(_accumulatedTime);
@@ -178,3 +98,100 @@ function timeToText(time, showMs=true, autoHide=false) {
 
     return txt;
 }
+
+let timer = function() {
+    // Maximum time allowed between multi-presses
+    const _multiPress = 300;
+    // Amount of presses required for a multi-press
+    const _resetTimerCount = 3;
+    // How long a button must be held to be considered a press
+    const _pressDetectionMs = 400;
+
+    // Time when the last fresh callback was called
+    let _lastFresh = 0;
+    // Amount of presses since the last single press
+    let _multiPressCount = 0;
+    // Whether the press has been handled
+    let _handled = false;
+
+    /**
+     * Resets the timer on multipresses and (un)pause it on single presses.
+     */
+    let handleTimerCallback = function () {
+        switch (_multiPressCount) {
+        case _resetTimerCount:
+            // Reset the time and pauses it
+            toggleTimer(0, true);
+            _prevAccumulatedTime = 0;
+            setTimerText();
+            reloadSplits();
+            break;
+        default:
+            let latest = getFixedAcc();
+            if (_timerRunner != null && hasMoreSplits()) {
+                setCurrentSplit(latest);
+            }
+            /* Stop if the previous split was the last */
+            if (_timerRunner == null || !hasMoreSplits()) {
+                toggleTimer(latest);
+            }
+            break;
+        }
+    }
+
+    /**
+     * Callback used to trigger reseting, pausing and unpausing the timer.
+     *
+     * To solve issues caused by miss-pressing the button, it ignores presses
+     * shorter _pressDetectionMs.
+     *
+     * @param{state} State of the pressed button/key.
+     * @param{fresh} Whether the state just transitioned.
+     * @param{ts} Timestamp of the callback, in milliseconds.
+     */
+    let timerCallback = function(state, fresh, ts) {
+        if (state && fresh) {
+            // Detect whether it's a multipress or not
+            if (ts - _lastFresh > _multiPress) {
+                _multiPressCount = 1;
+                _pressTime = ts;
+            }
+            else
+                _multiPressCount++;
+
+            _lastFresh = ts;
+        }
+        else if (!state)
+            _handled = false;
+        // If the button has been held for long enough, do the callback
+        else if (!_handled && ts - _lastFresh >= _pressDetectionMs) {
+            handleTimerCallback();
+            _handled = true;
+        }
+    }
+
+    document.addEventListener('timer-onpress', function (e) {
+        let state = true;
+        let fresh = true;
+        timerCallback(state, fresh, Math.trunc(e.timeStamp));
+    });
+    document.addEventListener('timer-pressed', function (e) {
+        let state = true;
+        let fresh = false;
+        timerCallback(state, fresh, Math.trunc(e.timeStamp));
+    });
+    document.addEventListener('timer-onrelease', function (e) {
+        let state = false;
+        let fresh = true;
+        timerCallback(state, fresh, Math.trunc(e.timeStamp));
+    });
+
+    return {
+        /**
+         * @return: The current time, since the page opened, in milliseconds.
+         */
+        now: function() {
+            return Math.trunc((new Event('dummy')).timeStamp);
+        }
+    };
+}();

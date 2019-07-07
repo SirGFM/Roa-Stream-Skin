@@ -1,42 +1,41 @@
 let _interval = null;
 let _gamepadObjects = null;
 let _fps = 30;
-let _callbacks = {};
 
 /**
  * Makes all the required setup, considering the divs/images have the default
  * names.
  */
 function setupDefaultGamepad() {
-    let gamepad = {};
-    gamepad.l2 = document.getElementById('gamepad_l2');
-    gamepad.l1 = document.getElementById('gamepad_l1');
-    gamepad.r2 = document.getElementById('gamepad_r2');
-    gamepad.r1 = document.getElementById('gamepad_r1');
-    gamepad.home = document.getElementById('gamepad_home');
-    gamepad.select = document.getElementById('gamepad_select');
-    gamepad.start = document.getElementById('gamepad_start');
-    gamepad.x = document.getElementById('gamepad_x');
-    gamepad.y = document.getElementById('gamepad_y');
-    gamepad.a = document.getElementById('gamepad_a');
-    gamepad.b = document.getElementById('gamepad_b');
-    gamepad.up = document.getElementById('gamepad_up');
-    gamepad.down = document.getElementById('gamepad_down');
-    gamepad.left = document.getElementById('gamepad_left');
-    gamepad.right = document.getElementById('gamepad_right');
-    gamepad.lstick = {};
-    gamepad.lstick.img = document.getElementById('gamepad_lstick');
-    gamepad.lstick.hw = 25;
-    gamepad.lstick.hh = 25;
-    gamepad.lstick.cx = gamepad.lstick.img.offsetLeft + gamepad.lstick.img.width / 2;
-    gamepad.lstick.cy = gamepad.lstick.img.offsetTop + gamepad.lstick.img.height / 2;
-    gamepad.rstick = {};
-    gamepad.rstick.img = document.getElementById('gamepad_rstick');
-    gamepad.rstick.hw = 17;
-    gamepad.rstick.hh = 17;
-    gamepad.rstick.cx = gamepad.rstick.img.offsetLeft + gamepad.rstick.img.width / 2;
-    gamepad.rstick.cy = gamepad.rstick.img.offsetTop + gamepad.rstick.img.height / 2;
-    setupGamepad(gamepad);
+    let object = {};
+    object.l2 = document.getElementById('gamepad_l2');
+    object.l1 = document.getElementById('gamepad_l1');
+    object.r2 = document.getElementById('gamepad_r2');
+    object.r1 = document.getElementById('gamepad_r1');
+    object.home = document.getElementById('gamepad_home');
+    object.select = document.getElementById('gamepad_select');
+    object.start = document.getElementById('gamepad_start');
+    object.x = document.getElementById('gamepad_x');
+    object.y = document.getElementById('gamepad_y');
+    object.a = document.getElementById('gamepad_a');
+    object.b = document.getElementById('gamepad_b');
+    object.up = document.getElementById('gamepad_up');
+    object.down = document.getElementById('gamepad_down');
+    object.left = document.getElementById('gamepad_left');
+    object.right = document.getElementById('gamepad_right');
+    object.lstick = {};
+    object.lstick.img = document.getElementById('gamepad_lstick');
+    object.lstick.hw = 25;
+    object.lstick.hh = 25;
+    object.lstick.cx = object.lstick.img.offsetLeft + object.lstick.img.width / 2;
+    object.lstick.cy = object.lstick.img.offsetTop + object.lstick.img.height / 2;
+    object.rstick = {};
+    object.rstick.img = document.getElementById('gamepad_rstick');
+    object.rstick.hw = 17;
+    object.rstick.hh = 17;
+    object.rstick.cx = object.rstick.img.offsetLeft + object.rstick.img.width / 2;
+    object.rstick.cy = object.rstick.img.offsetTop + object.rstick.img.height / 2;
+    setupGamepad(object);
 }
 
 /**
@@ -234,25 +233,46 @@ function pollGamepad() {
                 }
             }
 
-            let cb = _callbacks[buttonName];
-            if (cb) {
-                cb[0](state, cb[1])
-            }
+            gamepad.dispatchTimerEvent(buttonName, state);
         }
     }
 }
 
-/**
- * Configure a callback when a give button just got pressed. The callback must
- * receive the button state and may optionally receive a user defined argument.
- *
- * NOTE: Each button can only have a single callback. Calling this more than
- * once for the same button overwrites the previous callback.
- *
- * @param{buttonName} Name of the button that shall trigger the callback
- * @param{func} Function to be called for the callback
- * @param{args} Arguments to be passed to the function
- */
-function setGamepadCallback(buttonName, func, args) {
-    _callbacks[buttonName] = [func, args]
-}
+let gamepad = function() {
+    let _eventBt = null;
+    let _lastState = false;
+
+    return {
+        /**
+         * Try to dispatch a timer control event, based on a button press.
+         *
+         * @param{buttonName} Name of the button that changed states.
+         * @param{state} State of the button (true = pressed, false = released).
+         */
+        dispatchTimerEvent: function(buttonName, state) {
+            if (_eventBt != buttonName)
+                return; /* Do nothing */
+            else if (_lastState == state) {
+                if (state)
+                    document.dispatchEvent(new Event('timer-pressed'));
+            }
+            else if (state)
+                document.dispatchEvent(new Event('timer-onpress'));
+            else
+                document.dispatchEvent(new Event('timer-onrelease'));
+            _lastState = state;
+        },
+        /**
+         * Configure a button to generate the following events:
+         *   - 'timer-onpress'
+         *   - 'timer-pressed'
+         *   - 'timer-onrelease'
+         *
+         * @param{buttonName} Name of the button that shall trigger the events.
+         */
+        setTimerEventButton: function(buttonName) {
+            _eventBt = buttonName;
+            _lastState = false;
+        }
+    };
+}()
