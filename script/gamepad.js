@@ -1,251 +1,350 @@
-const xbox_id = 'Xbox 360 Controller';
-const ps1_id = 'Twin USB Joystick';
-
-let _interval = null;
-let _gamepadObjects = null;
-let _fps = 30;
-
-/**
- * Makes all the required setup, considering the divs/images have the default
- * names.
- */
-function setupDefaultGamepad() {
-    let object = {};
-    object.l2 = document.getElementById('gamepad_l2');
-    object.l1 = document.getElementById('gamepad_l1');
-    object.r2 = document.getElementById('gamepad_r2');
-    object.r1 = document.getElementById('gamepad_r1');
-    object.home = document.getElementById('gamepad_home');
-    object.select = document.getElementById('gamepad_select');
-    object.start = document.getElementById('gamepad_start');
-    object.x = document.getElementById('gamepad_x');
-    object.y = document.getElementById('gamepad_y');
-    object.a = document.getElementById('gamepad_a');
-    object.b = document.getElementById('gamepad_b');
-    object.up = document.getElementById('gamepad_up');
-    object.down = document.getElementById('gamepad_down');
-    object.left = document.getElementById('gamepad_left');
-    object.right = document.getElementById('gamepad_right');
-    object.lstick = {};
-    object.lstick.img = document.getElementById('gamepad_lstick');
-    object.lstick.hw = 25;
-    object.lstick.hh = 25;
-    object.lstick.cx = object.lstick.img.offsetLeft + object.lstick.img.width / 2;
-    object.lstick.cy = object.lstick.img.offsetTop + object.lstick.img.height / 2;
-    object.rstick = {};
-    object.rstick.img = document.getElementById('gamepad_rstick');
-    object.rstick.hw = 17;
-    object.rstick.hh = 17;
-    object.rstick.cx = object.rstick.img.offsetLeft + object.rstick.img.width / 2;
-    object.rstick.cy = object.rstick.img.offsetTop + object.rstick.img.height / 2;
-    setupGamepad(object);
-}
-
-/**
- * Stores the object with references for every gamepad button that may be
- * activated/moved.
- *
- * To simplify updating it, every button is normalized into an object that
- * has tha actual DOM and a bool stating whether it's visible or not.
- *
- * Also, another attribute 'button' is added to every button, mapping the
- * button to the index within the default mapping (see
- * https://w3c.github.io/gamepad/#remapping).
- *
- * The following attributes/sub-objects shall be accessed:
- *   - l2: The left trigger (farther shoulder button)
- *   - l1: The left shoulder button (closer shoulder button)
- *   - r2: The right trigger (farther shoulder button)
- *   - r1: The right shoulder button (closer shoulder button)
- *   - home: Home-menu button
- *   - select: Select button (the one to the left)
- *   - start: Pause button (the one to the right)
- *   - x: Left-most face button
- *   - y: Top face button
- *   - a: Bottom face button
- *   - b: Right-most face button
- *   - up: D-pad up
- *   - down: D-pad down
- *   - left: D-pad left
- *   - right: D-pad right
- *   - lstick
- *       - img: Image for the left analog stick
- *       - cx: Centered horizontal position
- *       - cy: Centered vertical position
- *       - hw: Half width of the stick area
- *       - hh: Half height of the stick area
- *   - rstick
- *       - img: Image for the right analog stick
- *       - cx: Centered horizontal position
- *       - cy: Centered vertical position
- *       - hw: Half width of the stick area
- *       - hh: Half height of the stick area
- */
-function setupGamepad(objects) {
-    _gamepadObjects = objects;
-
-    for (var button in _gamepadObjects) {
-        if (button == 'lstick' || button == 'rstick') {
-            continue
-        }
-
-        val = _gamepadObjects[button]
-        _gamepadObjects[button] = {}
-        _gamepadObjects[button].img = val;
-        _gamepadObjects[button].visible = false;
-    }
-
-    _gamepadObjects.b.button = 1;
-    _gamepadObjects.a.button = 0;
-    _gamepadObjects.x.button = 2;
-    _gamepadObjects.y.button = 3;
-    _gamepadObjects.l1.button = 4;
-    _gamepadObjects.r1.button = 5;
-    _gamepadObjects.l2.button = 6;
-    _gamepadObjects.r2.button = 7;
-    _gamepadObjects.select.button = 8;
-    _gamepadObjects.start.button = 9;
-    _gamepadObjects.up.button = 12;
-    _gamepadObjects.down.button = 13;
-    _gamepadObjects.left.button = 14;
-    _gamepadObjects.right.button = 15;
-    _gamepadObjects.home.button = 16;
-}
-
-/** Reset the gamepad back to neutral (fully released) position */
-function resetGamepad() {
-    for (let button in _gamepadObjects) {
-        if (button == 'lstick' || button == 'rstick') {
-            stick = _gamepadObjects[button].img
-
-            stick.img.style.left = (stick.cx - axis.img.width / 2) + 'px';
-            stick.img.style.top = (stick.cy - axis.img.height / 2) + 'px';
-        }
-        else {
-            _gamepadObjects[button].visible = false;
-            _gamepadObjects[button].img.style.visibility = 'hidden';
-        }
-    }
-}
-
-/**
- * Retrieve the current list of connected gamepads.
- *
- * From: https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API
- */
-function getGamepadList() {
-    return navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
-}
-
-/** Set a callback for updating the buttons */
-function enableGamepad() {
-    if (_interval === null && getGamepadCount(getGamepadList()) > 0) {
-        _interval = setInterval(pollGamepad, 1000 / _fps);
-    }
-}
-
-/** Remove the callback for updating the buttons */
-function disableGamepad(force = false) {
-    if (force || getGamepadCount(getGamepadList()) <= 0 && _interval !== null) {
-        clearInterval(_interval);
-        _interval = null;
-    }
-}
-
-/**
- * Retrieve the actual number of connected gamepads, given a list retrieved from
- * 'getGamepadList()'.
- */
-function getGamepadCount(gpList) {
-    let i = 0;
-    let count = 0;
-
-    while (i < gpList.length) {
-        if (gpList[i] != null) {
-            count++;
-        }
-        i++;
-    }
-
-    return count;
-}
-
-/** Enables the gamepad if at least one is active */
-window.addEventListener("gamepadconnected", function(e) {
-    /* No 'onpress' event, gotta pool... */
-    enableGamepad();
-});
-
-/** Disables the gamepad if none is active */
-window.addEventListener("gamepaddisconnected", function(e) {
-    disableGamepad();
-});
-
-/** Check whether 'b' is pressed */
-function buttonPressed(b) {
-    if (typeof(b) == "object") {
-        return b.pressed;
-    }
-    return b == 1.0;
-}
-
-/** Update the gamepad's objects */
-function pollGamepad() {
-    let _gps = getGamepadList();
-
-    /* Shouldn't happen... */
-    if (_gps.length <= 0) {
-        return;
-    }
-    let _gp = _gps[0];
-
-    /* Iterate through every button and update it */
-    for (let buttonName in _gamepadObjects) {
-        if (buttonName == 'lstick' || buttonName == 'rstick') {
-            let axis = _gamepadObjects[buttonName];
-            let x = 0;
-            let y = 0;
-
-            if (buttonName == 'lstick' && _gp.axes.length >= 2) {
-                x = _gp.axes[0];
-                y = _gp.axes[1];
-            } else if (buttonName == 'rstick' && _gp.axes.length >= 4) {
-                x = _gp.axes[2];
-                y = _gp.axes[3];
-            }
-
-            axis.img.style.left = (axis.cx - axis.img.width / 2 + axis.hw * x) + 'px';
-            axis.img.style.top = (axis.cy - axis.img.height / 2 + axis.hh * y) + 'px';
-        }
-        else {
-            let button = _gamepadObjects[buttonName];
-            let i = button.button;
-
-            if (i >= _gp.buttons.length) {
-                continue;
-            }
-
-            let state = buttonPressed(_gp.buttons[i]);
-            if (state != button.visible) {
-                button.visible = state;
-                if (state) {
-                    button.img.style.visibility = 'visible';
-                }
-                else {
-                    button.img.style.visibility = 'hidden';
-                }
-            }
-
-            gamepad.dispatchTimerEvent(buttonName, state);
-        }
-    }
-}
-
 let gamepad = function() {
+    const _fps = 30;
+    const xbox_id = 'Xbox 360 Controller';
+    const ps1_id = 'Twin USB Joystick';
+
     let _eventBt = null;
     let _lastState = false;
+    let _images = [];
+    let _active = null;
+    let _interval = null;
+
+    let _xboxSkin = {
+        'released': {
+            'src': '/img/gamepad/x360/released_buttons.png',
+            'width': 190,
+            'left': 18,
+            'top': 18
+        },
+        'button': {
+            'l2': {
+                'src': '/img/gamepad/x360/pressed/l2.png',
+                'width': 42,
+                'height': 20,
+                'left': 22,
+                'top': 18,
+                'button': 6
+            },
+            'l1': {
+                'src': '/img/gamepad/x360/pressed/l1.png',
+                'width': 34,
+                'height': 14,
+                'left': 62,
+                'top': 28,
+                'button': 4
+            },
+            'r2': {
+                'src': '/img/gamepad/x360/pressed/r2.png',
+                'width': 42,
+                'height': 20,
+                'left': 156,
+                'top': 18,
+                'button': 7
+            },
+            'r1': {
+                'src': '/img/gamepad/x360/pressed/r1.png',
+                'width': 34,
+                'height': 14,
+                'left': 122,
+                'top': 28,
+                'button': 5
+            },
+            'home': {
+                'src': '/img/gamepad/x360/pressed/home.png',
+                'width': 26,
+                'height': 26,
+                'left': 96,
+                'top': 46,
+                'button': 1
+            },
+            'select': {
+                'src': '/img/gamepad/x360/pressed/select.png',
+                'width': 24,
+                'height': 14,
+                'left': 74,
+                'top': 70,
+                'button': 8
+            },
+            'start': {
+                'src': '/img/gamepad/x360/pressed/start.png',
+                'width': 24,
+                'height': 14,
+                'left': 120,
+                'top': 70,
+                'button': 9
+            },
+            'x': {
+                'src': '/img/gamepad/x360/pressed/x.png',
+                'width': 26,
+                'height': 26,
+                'left': 146,
+                'top': 66,
+                'button': 2
+            },
+            'y': {
+                'src': '/img/gamepad/x360/pressed/y.png',
+                'width': 26,
+                'height': 26,
+                'left': 168,
+                'top': 44,
+                'button': 3
+            },
+            'a': {
+                'src': '/img/gamepad/x360/pressed/a.png',
+                'width': 26,
+                'height': 26,
+                'left': 160,
+                'top': 92,
+                'button': 0
+            },
+            'b': {
+                'src': '/img/gamepad/x360/pressed/b.png',
+                'width': 26,
+                'height': 26,
+                'left': 182,
+                'top': 70,
+                'button': 1
+            },
+            'up': {
+                'src': '/img/gamepad/x360/pressed/up.png',
+                'width': 14,
+                'height': 14,
+                'left': 82,
+                'top': 102,
+                'button': 12
+            },
+            'down': {
+                'src': '/img/gamepad/x360/pressed/down.png',
+                'width': 14,
+                'height': 14,
+                'left': 82,
+                'top': 126,
+                'button': 13
+            },
+            'left': {
+                'src': '/img/gamepad/x360/pressed/left.png',
+                'width': 14,
+                'height': 14,
+                'left': 70,
+                'top': 114,
+                'button': 14
+            },
+            'right': {
+                'src': '/img/gamepad/x360/pressed/right.png',
+                'width': 14,
+                'height': 14,
+                'left': 94,
+                'top': 114,
+                'button': 15
+            }
+        },
+        'axes': {
+            'lstick': {
+                'src': '/img/gamepad/x360/stick.png',
+                'width': 18,
+                'height': 18,
+                'left': 36,
+                'top': 80,
+                'hw': 25,
+                'hh': 25,
+                'hor': 0,
+                'ver': 1
+            },
+            'rstick': {
+                'src': '/img/gamepad/x360/stick.png',
+                'width': 18,
+                'height': 18,
+                'left': 126,
+                'top': 112,
+                'hw': 17,
+                'hh': 17,
+                'hor': 2,
+                'ver': 3
+            }
+        }
+    };
+
+    /** Reset every image, so a new skin may be loaded. */
+    let resetGamepad = function() {
+        for (let i in _images) {
+            _images[i].style.visibility = 'hidden';
+        }
+    };
+
+    /**
+     * Retrieve the current list of connected gamepads.
+     *
+     * From: https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API
+     */
+    function getGamepadList() {
+        if (navigator.getGamepads)
+           return navigator.getGamepads();
+        else if (navigator.webkitGetGamepads)
+           return navigator.webkitGetGamepads()
+        return [];
+    }
+
+    /** Set a callback for updating the buttons */
+    function enableGamepad(gamepadId) {
+        if (_interval === null && getGamepadCount(getGamepadList()) > 0) {
+            // TODO if def_id == null, detect from gamepad.id
+            /* No 'onpress' event, gotta pool... */
+            _interval = setInterval(pollGamepad, 1000 / _fps);
+        }
+    }
+
+    /** Remove the callback for updating the buttons */
+    function disableGamepad(force = false) {
+        if (force || (getGamepadCount(getGamepadList()) <= 0 &&
+                      _interval !== null)) {
+            clearInterval(_interval);
+            _interval = null;
+        }
+    }
+
+    /**
+     * Retrieve the actual number of connected gamepads, given a list retrieved
+     * from 'getGamepadList()'.
+     */
+    function getGamepadCount(gpList) {
+        let count = 0;
+
+        for (let i in gpList) {
+            if (gpList[i])
+                count++;
+        }
+
+        return count;
+    }
+
+
+    /**
+     * Add a new <img> to the gamepad. 'obj' must have the following fields:
+     *   - src
+     *   - width
+     *   - left
+     *   - top
+     * Optionally, 'obj' may have a 'height' attribute.
+     *
+     * @param{obj} The object to be added.
+     * @return The newly created <img>.
+     */
+    let addObject = function(obj, parentContent) {
+        let _new = null;
+        for (let i in _images) {
+            if (_images[i].style.visibility == 'hidden') {
+                _new = _images[i];
+                break;
+            }
+        }
+        if (!_new) {
+            _new = document.createElement('img');
+            _new.style.visibility = 'hidden';
+            _new.style.position = 'absolute';
+            /* Add it to the document. */
+            parentContent.appendChild(_new);
+            /* Cache it for later use. */
+            _images.push(_new);
+        }
+        _new.src = obj.src;
+        _new.style.width = obj.width + 'px';
+        if ('height' in obj)
+            _new.style.height = obj.height + 'px';
+        _new.style.left = obj.left + 'px';
+        _new.style.top = obj.top + 'px';
+        return _new;
+    };
+
+    /** Check whether 'b' is pressed */
+    let buttonPressed = function(b) {
+        if (typeof(b) == "object") {
+            return b.pressed;
+        }
+        return b == 1.0;
+    }
+
+    /** Update the gamepad's objects */
+    let pollGamepad = function() {
+        if (!_active)
+            return;
+        let _gps = getGamepadList();
+        /* Shouldn't happen... */
+        if (_gps.length <= 0)
+            return;
+        let _gp = _gps[0];
+
+        for (let i in _active.button) {
+            let _bt = _active.button[i];
+            let i = _bt.button;
+
+            if (i >= _gp.buttons.length)
+                continue;
+
+            let state = buttonPressed(_gp.buttons[i]);
+            if (state != _bt.visible) {
+                _bt.visible = state;
+                if (state) {
+                    _bt.img.style.visibility = 'visible';
+                }
+                else {
+                    _bt.img.style.visibility = 'hidden';
+                }
+            }
+
+            gamepad.dispatchTimerEvent(i, state);
+        }
+        for (let i in _active.axes) {
+            let _axis = _active.axes[i];
+            let x = _gp.axes[_axis.hor];
+            let y = _gp.axes[_axis.ver];
+
+            x *= _axis.hw;
+            x += _axis.cx - _axis.img.width / 2;
+            y *= _axis.hh;
+            y += _axis.cy - _axis.img.height / 2;
+
+            _axe.img.style.left = x + 'px';
+            _axe.img.style.top = y + 'px';
+        }
+    };
+
+    /** Configure the event listener for gamepads. */
+    window.addEventListener("gamepadconnected", function(e) {
+        enableGamepad(e.gamepad.id);
+    });
+    window.addEventListener("gamepaddisconnected", function(e) {
+        disableGamepad();
+    });
 
     return {
+        setup(parentContent, skin='') {
+            let _obj = null;
+            switch (skin) {
+            case 'xbox':
+                _obj = _xboxSkin;
+                break;
+            case 'ps1':
+                _obj = _ps1Skin;
+                break;
+            case 'ps1-analog':
+                _obj = _ps1AnalogSkin;
+                break;
+            }
+
+            resetGamepad();
+            addObject(_obj.released, parentContent).style.visibility = 'visible';
+            for (let i in _obj.button)
+                _obj.button[i].img = addObject(_obj.button[i], parentContent);
+            for (let i in _obj.axes) {
+                _obj.axes[i].img = addObject(_obj.axes[i], parentContent);
+                _obj.axes[i].cx = _obj.axes[i].img.offsetLeft;
+                _obj.axes[i].cx += _obj.axes[i].img.width / 2;
+                _obj.axes[i].cy = _obj.axes[i].img.offsetTop;
+                _obj.axes[i].cy += _obj.axes[i].img.height / 2;
+            }
+
+            _active = _obj;
+        },
         /**
          * Try to dispatch a timer control event, based on a button press.
          *
