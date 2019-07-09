@@ -330,7 +330,7 @@
              * (if any).
              */
             function configureInput(input) {
-                let gamepad = document.getElementById("gamepad-view");
+                let gamepadView = document.getElementById("gamepad-view");
                 let nespad = document.getElementById("nespad-view");
 
                 let setPad = function(pad, name) {
@@ -343,7 +343,14 @@
                     }
                 }
 
-                setPad(gamepad, "gamepad");
+                if (!('gamepad' in input) || !input['gamepad']) {
+                    input['gamepad'] = 'false';
+                    gamepadView.style.visibility = "hidden";
+                }
+                else {
+                    gamepadView.style.visibility = "visible";
+                    gamepad.setup(gamepadView, input['gamepad']);
+                }
                 setPad(nespad, "nespad");
 
                 if (("nespad" in input) && input.nespad) {

@@ -70,5 +70,5 @@ NOTE: The nespad logger should output keys sorted as: left, right, up, down, B, 
 
 | **Name** | **Type** | **Required** | **Description** |
 | --- | --- | --- | --- |
-| `gamepad` | Boolean | **No** | Whether the gamepad if visible. **Default: true** |
+| `gamepad` | String | **No** | Gamepad skin to be used. Special name 'false' should be used to disable it! |
 | `nespad` | String | **No** | URL of nespad's key logger, if enabled. **Default: empty** |
