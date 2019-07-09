@@ -165,6 +165,162 @@ let gamepad = function() {
             }
         }
     };
+    let _ps1Skin = {
+        'released': {
+            'src': '/img/gamepad/ps1/released.png',
+            'width': 190,
+            'left': 18,
+            'top': 18
+        },
+        'button': {
+            'l2': {
+                'src': '/img/gamepad/ps1/pressed/l2.png',
+                'width': 36,
+                'height': 20,
+                'left': 32,
+                'top': 18,
+                'button': 4
+            },
+            'l1': {
+                'src': '/img/gamepad/ps1/pressed/l1.png',
+                'width': 34,
+                'height': 16,
+                'left': 68,
+                'top': 38,
+                'button': 6
+            },
+            'r2': {
+                'src': '/img/gamepad/ps1/pressed/r2.png',
+                'width': 36,
+                'height': 20,
+                'left': 156,
+                'top': 18,
+                'button': 5
+            },
+            'r1': {
+                'src': '/img/gamepad/ps1/pressed/r1.png',
+                'width': 34,
+                'height': 16,
+                'left': 124,
+                'top': 38,
+                'button': 7
+            },
+            'select': {
+                'src': '/img/gamepad/ps1/pressed/select.png',
+                'width': 24,
+                'height': 12,
+                'left': 84,
+                'top': 68,
+                'button': 8
+            },
+            'start': {
+                'src': '/img/gamepad/ps1/pressed/start.png',
+                'width': 24,
+                'height': 12,
+                'left': 114,
+                'top': 68,
+                'button': 9
+            },
+            'square': {
+                'src': '/img/gamepad/ps1/pressed/square.png',
+                'width': 28,
+                'height': 28,
+                'left': 140,
+                'top': 72,
+                'button': 3
+            },
+            'triangle': {
+                'src': '/img/gamepad/ps1/pressed/triangle.png',
+                'width': 28,
+                'height': 28,
+                'left': 160,
+                'top': 52,
+                'button': 0
+            },
+            'cross': {
+                'src': '/img/gamepad/ps1/pressed/cross.png',
+                'width': 28,
+                'height': 28,
+                'left': 160,
+                'top': 92,
+                'button': 2
+            },
+            'circle': {
+                'src': '/img/gamepad/ps1/pressed/circle.png',
+                'width': 28,
+                'height': 28,
+                'left': 180,
+                'top': 72,
+                'button': 1
+            },
+        },
+        'axis': {
+            'lstick': {
+                'src': '/img/gamepad/ps1/stick.png',
+                'width': 18,
+                'height': 18,
+                'left': 80,
+                'top': 112,
+                'hw': 17,
+                'hh': 17,
+                'hor': 4,
+                'ver': 5
+            },
+            'rstick': {
+                'src': '/img/gamepad/ps1/stick.png',
+                'width': 18,
+                'height': 18,
+                'left': 126,
+                'top': 112,
+                'hw': 17,
+                'hh': 17,
+                'hor': 3,
+                'ver': 2
+            }
+        },
+        'hat': {
+            'up': {
+                'src': '/img/gamepad/ps1/pressed/up.png',
+                'width': 24,
+                'height': 26,
+                'left': 38,
+                'top': 52,
+                'button': 12,
+                'idx': 1,
+                'val': -0.75
+            },
+            'down': {
+                'src': '/img/gamepad/ps1/pressed/down.png',
+                'width': 24,
+                'height': 26,
+                'left': 38,
+                'top': 90,
+                'button': 13,
+                'idx': 1,
+                'val': 0.75
+            },
+            'left': {
+                'src': '/img/gamepad/ps1/pressed/left.png',
+                'width': 26,
+                'height': 24,
+                'left': 18,
+                'top': 72,
+                'button': 14,
+                'idx': 0,
+                'val': -0.75
+            },
+            'right': {
+                'src': '/img/gamepad/ps1/pressed/right.png',
+                'width': 26,
+                'height': 24,
+                'left': 56,
+                'top': 72,
+                'button': 15,
+                'idx': 0,
+                'val': 0.75
+            }
+        }
+    };
     let _ps1AnalogSkin = {
         'released': {
             'src': '/img/gamepad/ps1/released.png',
