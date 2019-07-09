@@ -918,6 +918,36 @@ let gamepad = function() {
         setTimerEventButton: function(buttonName) {
             _eventBt = buttonName;
             _lastState = false;
+        },
+        logKeys: function() {
+            let _gps = getGamepadList();
+            /* Shouldn't happen... */
+            if (!_gps || _gps.length <= 0)
+                return;
+            let _gp = null;
+            for (let i in _gps)
+                if (_gps[i]) {
+                    _gp = _gps[i];
+                    break;
+                }
+            if (!_gp) {
+                window.alert('No gamepad!');
+                return;
+            }
+            let s = '';
+            for (let i in _gp.buttons)
+                s += 'b: ' + i + ' - ' + _gp.buttons[i].pressed + '</br>';
+            for (let i in _gp.axes)
+                s += 'x: ' + i + ' - ' + _gp.axes[i] + '</br>';
+            let txt = document.getElementById('debug');
+            if (!txt) {
+                txt = document.createElement('p');
+                txt.id = 'debug';
+                txt.style.position = 'absolute';
+                txt.style.zIndex = 1000;
+                document.body.appendChild(txt);
+            }
+            txt.innerHTML = s;
         }
     };
 }()
