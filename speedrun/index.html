@@ -225,7 +225,7 @@
                 _input.addEventListener("change", loadJsonFile);
 
                 initialTimerSetup();
-                setupDefaultGamepad();
+                gamepad.setup(document.getElementById('gamepad-view'), 'xbox');
 
                 /* Get every key used by the nespad (in the correct order) */
                 _nespadKeys.push(document.getElementById("nespad_left"));
@@ -552,27 +552,6 @@
 
         <div class='fixedRoot' id='gamepad-view'>
             <img class='fixedChild' style='width: 220px; left: 0px; top: 0px;' src='/img/skin/small_border.png' />
-
-            <img class='fixedChild' style='width: 190px; left: 18px; top: 18px;' src='/img/gamepad/x360/released_buttons.png' />
-
-            <img id='gamepad_l2' class='fixedChild' style='width: 42px; height: 20px; left: 22px; top: 18px; visibility: hidden;' src='/img/gamepad/x360/pressed/l2.png'/>
-            <img id='gamepad_l1' class='fixedChild' style='width: 34px; height: 14px; left: 62px; top: 28px; visibility: hidden;' src='/img/gamepad/x360/pressed/l1.png'/>
-            <img id='gamepad_r2' class='fixedChild' style='width: 42px; height: 20px; left: 156px; top: 18px; visibility: hidden;' src='/img/gamepad/x360/pressed/r2.png'/>
-            <img id='gamepad_r1' class='fixedChild' style='width: 34px; height: 14px; left: 122px; top: 28px; visibility: hidden;' src='/img/gamepad/x360/pressed/r1.png'/>
-            <img id='gamepad_home' class='fixedChild' style='width: 26px; height: 26px; left: 96px; top: 46px; visibility: hidden;' src='/img/gamepad/x360/pressed/home.png'/>
-            <img id='gamepad_select' class='fixedChild' style='width: 24px; height: 14px; left: 74px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/select.png'/>
-            <img id='gamepad_start' class='fixedChild' style='width: 24px; height: 14px; left: 120px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/start.png'/>
-            <img id='gamepad_x' class='fixedChild' style='width: 26px; height: 26px; left: 146px; top: 66px; visibility: hidden;' src='/img/gamepad/x360/pressed/x.png'/>
-            <img id='gamepad_y' class='fixedChild' style='width: 26px; height: 26px; left: 168px; top: 44px; visibility: hidden;' src='/img/gamepad/x360/pressed/y.png'/>
-            <img id='gamepad_a' class='fixedChild' style='width: 26px; height: 26px; left: 160px; top: 92px; visibility: hidden;' src='/img/gamepad/x360/pressed/a.png'/>
-            <img id='gamepad_b' class='fixedChild' style='width: 26px; height: 26px; left: 182px; top: 70px; visibility: hidden;' src='/img/gamepad/x360/pressed/b.png'/>
-            <img id='gamepad_up' class='fixedChild' style='width: 14px; height: 14px; left: 82px; top: 102px; visibility: hidden;' src='/img/gamepad/x360/pressed/up.png'/>
-            <img id='gamepad_down' class='fixedChild' style='width: 14px; height: 14px; left: 82px; top: 126px; visibility: hidden;' src='/img/gamepad/x360/pressed/down.png'/>
-            <img id='gamepad_left' class='fixedChild' style='width: 14px; height: 14px; left: 70px; top: 114px; visibility: hidden;' src='/img/gamepad/x360/pressed/left.png'/>
-            <img id='gamepad_right' class='fixedChild' style='width: 14px; height: 14px; left: 94px; top: 114px; visibility: hidden;' src='/img/gamepad/x360/pressed/right.png'/>
-
-            <img id='gamepad_lstick' class='fixedChild' style='width: 18px; height: 18px; left: 36px; top: 80px;' src='/img/gamepad/x360/stick.png'/>
-            <img id='gamepad_rstick' class='fixedChild' style='width: 18px; height: 18px; left: 126px; top: 112px;' src='/img/gamepad/x360/stick.png'/>
         </div>
 
         <div class='fixedRoot' id='nespad-view'>

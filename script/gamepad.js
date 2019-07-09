@@ -57,7 +57,7 @@ let gamepad = function() {
                 'height': 26,
                 'left': 96,
                 'top': 46,
-                'button': 1
+                'button': 16
             },
             'select': {
                 'src': '/img/gamepad/x360/pressed/select.png',
@@ -326,6 +326,7 @@ let gamepad = function() {
     let resetGamepad = function() {
         for (let i in _images) {
             _images[i].style.visibility = 'hidden';
+            _images[i].in_use = false;
         }
     };
 
@@ -400,7 +401,7 @@ let gamepad = function() {
     let addObject = function(obj, parentContent) {
         let _new = null;
         for (let i in _images) {
-            if (_images[i].style.visibility == 'hidden') {
+            if (!_images[i].in_use) {
                 _new = _images[i];
                 break;
             }
@@ -420,6 +421,7 @@ let gamepad = function() {
             _new.style.height = obj.height + 'px';
         _new.style.left = obj.left + 'px';
         _new.style.top = obj.top + 'px';
+        _new.in_use = true;
         return _new;
     };
 
@@ -437,18 +439,23 @@ let gamepad = function() {
             return;
         let _gps = getGamepadList();
         /* Shouldn't happen... */
-        if (_gps.length <= 0)
+        if (!_gps || _gps.length <= 0)
             return;
-        let _gp = _gps[0];
+        let _gp = null;
+        for (let i in _gps)
+            if (_gps[i]) {
+                _gp = _gps[i];
+                break;
+            }
 
         for (let i in _active.button) {
             let _bt = _active.button[i];
-            let i = _bt.button;
+            let idx = _bt.button;
 
-            if (i >= _gp.buttons.length)
+            if (idx >= _gp.buttons.length)
                 continue;
 
-            let state = buttonPressed(_gp.buttons[i]);
+            let state = buttonPressed(_gp.buttons[idx]);
             if (state != _bt.visible) {
                 _bt.visible = state;
                 if (state) {
@@ -491,8 +498,8 @@ let gamepad = function() {
             y *= _axis.hh;
             y += _axis.cy - _axis.img.height / 2;
 
-            _axe.img.style.left = x + 'px';
-            _axe.img.style.top = y + 'px';
+            _axis.img.style.left = x + 'px';
+            _axis.img.style.top = y + 'px';
         }
     };
 
@@ -540,6 +547,7 @@ let gamepad = function() {
                 _obj.button[i].img = addObject(_obj.button[i], parentContent);
             for (let i in _obj.axis) {
                 _obj.axis[i].img = addObject(_obj.axis[i], parentContent);
+                _obj.axis[i].img.style.visibility = 'visible';
                 _obj.axis[i].cx = _obj.axis[i].img.offsetLeft;
                 _obj.axis[i].cx += _obj.axis[i].img.width / 2;
                 _obj.axis[i].cy = _obj.axis[i].img.offsetTop;
