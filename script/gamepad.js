@@ -1,7 +1,8 @@
 let gamepad = function() {
     const _fps = 30;
     const xbox_id = 'Xbox 360 Controller';
-    const ps1_id = 'Twin USB Joystick';
+    const xbox_id_linux = 'Vendor: 045e Product: 028e';
+    const ps1_id = 'Vendor: 0810 Product: 0001';
 
     let _eventBt = null;
     let _lastState = false;
@@ -347,13 +348,14 @@ let gamepad = function() {
             /* Configure the gamepad skin */
             let skin = _defaultSkin;
             if (!skin) {
-                if (gamepadId.startsWith(xbox_id))
+                if (gamepadId.startsWith(xbox_id) ||
+                        gamepadId.indexOf(xbox_id_linux) != -1)
                     skin = 'xbox';
-                else if (gamepadId.startsWith(ps1_id))
+                else if (gamepadId.indexOf(ps1_id) != -1)
                     skin = 'ps1';
             }
             let parentContent = document.getElementById('gamepad-view');
-            setup(parentContent, skin);
+            gamepad.setup(parentContent, skin);
             /* No 'onpress' event, gotta pool... */
             _interval = setInterval(pollGamepad, 1000 / _fps);
         }
