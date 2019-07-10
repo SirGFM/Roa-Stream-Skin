@@ -536,6 +536,15 @@
                         keyboard.setTimerEventKey(config.timer.keyControl);
                     else
                         keyboard.setTimerEventKey(null);
+                    {
+                        let timer = document.getElementById('timer');
+                        let div = timer.parentElement;
+                        let visible = 'visible';
+                        if ("hidden" in config.timer && config.timer.hidden)
+                            visible = 'hidden';
+                        timer.style.visibility = visible;
+                        div.style.visibility = visible;
+                    }
                     configureInput(config.input);
                     let _maxSplitW = getValidDimension(getLeftView() * 0.8);
                     let _maxSplitH = getValidDimension(calculateNonSplitHeight(config) * 0.95);

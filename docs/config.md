@@ -44,6 +44,7 @@ splits.
 
 | **Name** | **Type** | **Required** | **Description** |
 | --- | --- | --- | --- |
+| `hidden` | Boolean | **No** | Whether the timer should be hidden (e.g., when the game has an in game timer). |
 | `control` | String | **No** | Which gamepad button controls the timer. |
 | `keyControl` | String | **No** | Which keyboard keymask controls the timer. Either as hexstring ("0x...") or a bitmask ("0b...") |
 | `splits` | Object | **No** | Controls display of the game's splits |
