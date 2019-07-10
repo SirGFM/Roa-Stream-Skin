@@ -478,12 +478,13 @@
                 let _hideElement = function(name) {
                     let _el = document.getElementById(name);
                     _el.style.visibility = "hidden";
+                    if (_el.parentElement && _el.parentElement.style)
+                        _el.parentElement.style.visibility = 'hidden';
                 }
 
                 _hideElement("gameInfo");
                 _hideElement("loadConfigButton");
                 _hideElement("gameView");
-                _hideElement("gameColorkey");
                 hideLine('title');
 
                 document.body.style.backgroundImage = "none";
