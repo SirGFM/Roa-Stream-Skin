@@ -826,11 +826,16 @@ let gamepad = function() {
     };
 
     /** Configure the event listener for gamepads. */
-    window.addEventListener("gamepadconnected", function(e) {
-        enableGamepad(e.gamepad.id);
-    });
-    window.addEventListener("gamepaddisconnected", function(e) {
-        disableGamepad();
+    document.addEventListener("DOMContentLoaded", function (event) {
+        /* Delay it unti ~1s after the page has loaded */
+        window.setTimeout(function() {
+            window.addEventListener("gamepadconnected", function(e) {
+                enableGamepad(e.gamepad.id);
+            });
+            window.addEventListener("gamepaddisconnected", function(e) {
+                disableGamepad();
+            })
+        }, 1000);
     });
 
     return {
