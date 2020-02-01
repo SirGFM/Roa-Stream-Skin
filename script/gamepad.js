@@ -8,6 +8,7 @@ let gamepad = function() {
     let _lastState = false;
     let _images = [];
     let _active = null;
+    let _activeGpIdx = -1;
     let _interval = null;
     let _defaultSkin = null;
 
@@ -753,12 +754,28 @@ let gamepad = function() {
         /* Shouldn't happen... */
         if (!_gps || _gps.length <= 0)
             return;
-        let _gp = null;
-        for (let i in _gps)
-            if (_gps[i]) {
-                _gp = _gps[i];
-                break;
+
+        /** Check for the first gamepad with any button pressed */
+_check_gp:
+        if (_activeGpIdx == -1) {
+            for (let i  = 0; i < _gps.length; i++) {
+                if (!_gps[i])
+                    continue;
+                for (let bt in _gps[i].buttons) {
+                    if (buttonPressed(_gps[i].buttons[bt])) {
+                        _activeGpIdx = i;
+                        break _check_gp;
+                    }
+                }
             }
+        }
+        if (_activeGpIdx == -1 || _activeGpIdx >= _gps.length ||
+                !_gps[_activeGpIdx]) {
+            /* Gamepad was just removed */
+            _activeGpIdx = -1;
+            return;
+        }
+        _gp = _gps[_activeGpIdx];
 
         for (let i in _active.button) {
             let _bt = _active.button[i];
@@ -830,6 +847,7 @@ let gamepad = function() {
         /* Delay it unti ~1s after the page has loaded */
         window.setTimeout(function() {
             window.addEventListener("gamepadconnected", function(e) {
+                _activeGpIdx = -1;
                 enableGamepad(e.gamepad.id);
             });
             window.addEventListener("gamepaddisconnected", function(e) {
