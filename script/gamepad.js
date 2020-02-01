@@ -3,6 +3,7 @@ let gamepad = function() {
     const xbox_id = 'Xbox 360 Controller';
     const xbox_id_linux = 'Vendor: 045e Product: 028e';
     const ps1_id = 'Vendor: 0810 Product: 0001';
+    const gcn_id = 'Vendor: 0079 Product: 1846';
 
     let _eventBt = null;
     let _lastState = false;
@@ -634,6 +635,163 @@ let gamepad = function() {
             }
         }
     };
+    let _gcnSkin = {
+        'released': {
+            'src': '/img/gamepad/x360/released_buttons.png',
+            'width': 190,
+            'left': 18,
+            'top': 18
+        },
+        'button': {
+            'l2': {
+                /* NOTE: unused */
+                'src': '/img/gamepad/x360/pressed/l2.png',
+                'width': 42,
+                'height': 20,
+                'left': 22,
+                'top': 18,
+                'button': 6
+            },
+            'l1': {
+                'src': '/img/gamepad/x360/pressed/l1.png',
+                'width': 34,
+                'height': 14,
+                'left': 62,
+                'top': 28,
+                'button': 4
+            },
+            'r2': {
+                'src': '/img/gamepad/x360/pressed/r2.png',
+                'width': 42,
+                'height': 20,
+                'left': 156,
+                'top': 18,
+                'button': 7
+            },
+            'r1': {
+                'src': '/img/gamepad/x360/pressed/r1.png',
+                'width': 34,
+                'height': 14,
+                'left': 122,
+                'top': 28,
+                'button': 5
+            },
+            'home': {
+                'src': '/img/gamepad/x360/pressed/home.png',
+                'width': 26,
+                'height': 26,
+                'left': 96,
+                'top': 46,
+                'button': 16
+            },
+            'select': {
+                'src': '/img/gamepad/x360/pressed/select.png',
+                'width': 24,
+                'height': 14,
+                'left': 74,
+                'top': 70,
+                'button': 8
+            },
+            'start': {
+                'src': '/img/gamepad/x360/pressed/start.png',
+                'width': 24,
+                'height': 14,
+                'left': 120,
+                'top': 70,
+                'button': 9
+            },
+            'x': {
+                'src': '/img/gamepad/x360/pressed/x.png',
+                'width': 26,
+                'height': 26,
+                'left': 146,
+                'top': 66,
+                'button': 0
+            },
+            'y': {
+                'src': '/img/gamepad/x360/pressed/y.png',
+                'width': 26,
+                'height': 26,
+                'left': 168,
+                'top': 44,
+                'button': 3
+            },
+            'a': {
+                'src': '/img/gamepad/x360/pressed/a.png',
+                'width': 26,
+                'height': 26,
+                'left': 160,
+                'top': 92,
+                'button': 1
+            },
+            'b': {
+                'src': '/img/gamepad/x360/pressed/b.png',
+                'width': 26,
+                'height': 26,
+                'left': 182,
+                'top': 70,
+                'button': 2
+            },
+            'up': {
+                'src': '/img/gamepad/x360/pressed/up.png',
+                'width': 14,
+                'height': 14,
+                'left': 82,
+                'top': 102,
+                'button': 12
+            },
+            'down': {
+                'src': '/img/gamepad/x360/pressed/down.png',
+                'width': 14,
+                'height': 14,
+                'left': 82,
+                'top': 126,
+                'button': 14
+            },
+            'left': {
+                'src': '/img/gamepad/x360/pressed/left.png',
+                'width': 14,
+                'height': 14,
+                'left': 70,
+                'top': 114,
+                'button': 15
+            },
+            'right': {
+                'src': '/img/gamepad/x360/pressed/right.png',
+                'width': 14,
+                'height': 14,
+                'left': 94,
+                'top': 114,
+                'button': 13
+            }
+        },
+        'axis': {
+            'lstick': {
+                'src': '/img/gamepad/x360/stick.png',
+                'width': 18,
+                'height': 18,
+                'left': 36,
+                'top': 80,
+                'hw': 25,
+                'hh': 25,
+                'hor': 0,
+                'ver': 1,
+            },
+            'rstick': {
+                'src': '/img/gamepad/x360/stick.png',
+                'width': 18,
+                'height': 18,
+                'left': 126,
+                'top': 112,
+                'hw': 17,
+                'hh': 17,
+                'hor': 5,
+                'ver': 2,
+                'invert_x': true,
+                'invert_y': true
+            }
+        }
+    };
 
     /** Reset every image, so a new skin may be loaded. */
     let resetGamepad = function() {
@@ -667,6 +825,8 @@ let gamepad = function() {
                     skin = 'xbox';
                 else if (gamepadId.indexOf(ps1_id) != -1)
                     skin = 'ps1';
+                else if (gamepadId.indexOf(gcn_id) != -1)
+                    skin = 'gcn';
             }
             let parentContent = document.getElementById('gamepad-view');
             gamepad.setup(parentContent, skin);
@@ -832,6 +992,11 @@ _check_gp:
             let x = _gp.axes[_axis.hor];
             let y = _gp.axes[_axis.ver];
 
+            if (_axis.invert_x)
+                x *= -1;
+            if (_axis.invert_y)
+                y *= -1;
+
             x *= _axis.hw;
             x += _axis.cx - _axis.img.width / 2;
             y *= _axis.hh;
@@ -886,6 +1051,9 @@ _check_gp:
                 break;
             case 'ps1-analog-win':
                 _obj = _ps1AnalogWinSkin;
+                break;
+            case 'gcn':
+                _obj = _gcnSkin;
                 break;
             case true:
                 return;
