@@ -637,9 +637,9 @@ let gamepad = function() {
     };
     let _gcnSkin = {
         'released': {
-            'src': '/img/gamepad/x360/released_buttons.png',
-            'width': 190,
-            'left': 18,
+            'src': '/img/gamepad/gcn/released_buttons.png',
+            'width': 178,
+            'left': 23,
             'top': 18
         },
         'button': {
@@ -653,30 +653,31 @@ let gamepad = function() {
                 'button': 6
             },
             'l1': {
-                'src': '/img/gamepad/x360/pressed/l1.png',
-                'width': 34,
-                'height': 14,
-                'left': 62,
-                'top': 28,
+                'src': '/img/gamepad/gcn/pressed/l.png',
+                'width': 44,
+                'height': 20,
+                'left': 35,
+                'top': 18,
                 'button': 4
             },
             'r2': {
-                'src': '/img/gamepad/x360/pressed/r2.png',
-                'width': 42,
-                'height': 20,
-                'left': 156,
-                'top': 18,
+                'src': '/img/gamepad/gcn/pressed/z.png',
+                'width': 32,
+                'height': 16,
+                'left': 111,
+                'top': 24,
                 'button': 7
             },
             'r1': {
-                'src': '/img/gamepad/x360/pressed/r1.png',
-                'width': 34,
-                'height': 14,
-                'left': 122,
-                'top': 28,
+                'src': '/img/gamepad/gcn/pressed/r.png',
+                'width': 44,
+                'height': 20,
+                'left': 155,
+                'top': 18,
                 'button': 5
             },
             'home': {
+                /* NOTE: unused */
                 'src': '/img/gamepad/x360/pressed/home.png',
                 'width': 26,
                 'height': 26,
@@ -685,6 +686,7 @@ let gamepad = function() {
                 'button': 16
             },
             'select': {
+                /* NOTE: unused */
                 'src': '/img/gamepad/x360/pressed/select.png',
                 'width': 24,
                 'height': 14,
@@ -693,84 +695,84 @@ let gamepad = function() {
                 'button': 8
             },
             'start': {
-                'src': '/img/gamepad/x360/pressed/start.png',
-                'width': 24,
-                'height': 14,
-                'left': 120,
-                'top': 70,
+                'src': '/img/gamepad/gcn/pressed/start.png',
+                'width': 22,
+                'height': 20,
+                'left': 99,
+                'top': 48,
                 'button': 9
             },
             'x': {
-                'src': '/img/gamepad/x360/pressed/x.png',
-                'width': 26,
-                'height': 26,
-                'left': 146,
-                'top': 66,
+                'src': '/img/gamepad/gcn/pressed/x.png',
+                'width': 18,
+                'height': 30,
+                'left': 183,
+                'top': 54,
                 'button': 0
             },
             'y': {
-                'src': '/img/gamepad/x360/pressed/y.png',
-                'width': 26,
-                'height': 26,
-                'left': 168,
+                'src': '/img/gamepad/gcn/pressed/y.png',
+                'width': 30,
+                'height': 18,
+                'left': 149,
                 'top': 44,
                 'button': 3
             },
             'a': {
-                'src': '/img/gamepad/x360/pressed/a.png',
+                'src': '/img/gamepad/gcn/pressed/a.png',
                 'width': 26,
                 'height': 26,
-                'left': 160,
-                'top': 92,
+                'left': 157,
+                'top': 62,
                 'button': 1
             },
             'b': {
-                'src': '/img/gamepad/x360/pressed/b.png',
-                'width': 26,
-                'height': 26,
-                'left': 182,
-                'top': 70,
+                'src': '/img/gamepad/gcn/pressed/b.png',
+                'width': 24,
+                'height': 24,
+                'left': 135,
+                'top': 78,
                 'button': 2
             },
             'up': {
-                'src': '/img/gamepad/x360/pressed/up.png',
+                'src': '/img/gamepad/gcn/pressed/up.png',
                 'width': 14,
                 'height': 14,
-                'left': 82,
+                'left': 87,
                 'top': 102,
                 'button': 12
             },
             'down': {
-                'src': '/img/gamepad/x360/pressed/down.png',
+                'src': '/img/gamepad/gcn/pressed/down.png',
                 'width': 14,
                 'height': 14,
-                'left': 82,
+                'left': 87,
                 'top': 126,
                 'button': 14
             },
             'left': {
-                'src': '/img/gamepad/x360/pressed/left.png',
+                'src': '/img/gamepad/gcn/pressed/left.png',
                 'width': 14,
                 'height': 14,
-                'left': 70,
+                'left': 75,
                 'top': 114,
                 'button': 15
             },
             'right': {
-                'src': '/img/gamepad/x360/pressed/right.png',
+                'src': '/img/gamepad/gcn/pressed/right.png',
                 'width': 14,
                 'height': 14,
-                'left': 94,
+                'left': 99,
                 'top': 114,
                 'button': 13
             }
         },
         'axis': {
             'lstick': {
-                'src': '/img/gamepad/x360/stick.png',
+                'src': '/img/gamepad/gcn/l_stick.png',
                 'width': 18,
                 'height': 18,
-                'left': 36,
+                'left': 41,
                 'top': 80,
                 'hw': 25,
                 'hh': 25,
@@ -778,10 +780,10 @@ let gamepad = function() {
                 'ver': 1,
             },
             'rstick': {
-                'src': '/img/gamepad/x360/stick.png',
+                'src': '/img/gamepad/gcn/c_stick.png',
                 'width': 18,
                 'height': 18,
-                'left': 126,
+                'left': 131,
                 'top': 112,
                 'hw': 17,
                 'hh': 17,
