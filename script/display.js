@@ -48,7 +48,7 @@ let getConsoleDimension = function(name) {
     case "gg":
         return [640, 599];
     case "gba":
-        return [879, 672];
+        return [720, 480];
     case "snes":
         return [879, 672];
     default:
